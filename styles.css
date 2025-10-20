@@ -1,0 +1,77 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #fffef6;
+    color: #2e2e2e;
+  }
+  
+  header {
+    background-color: #4b2e83;
+    color: white;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  header h1 {
+    margin: 0;
+    font-size: 2.5em;
+  }
+  
+  .tagline {
+    font-style: italic;
+    margin-top: 5px;
+  }
+  
+  nav ul {
+    list-style-type: none;
+    margin: 10px 0 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+  }
+  
+  nav a {
+    text-decoration: none;
+    color: #fce76b;
+    font-weight: bold;
+  }
+  
+  #hero {
+    text-align: center;
+    padding: 60px 20px;
+    background: url('https://images.unsplash.com/photo-1524985069026-dd778a71c7b4') center/cover no-repeat;
+    color: white;
+  }
+  
+  #hero h2 {
+    font-size: 2em;
+    margin-bottom: 10px;
+  }
+  
+  #hero button {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #fce76b;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+  
+  #mission {
+    padding: 40px 20px;
+    background-color: #ffffff;
+    text-align: center;
+  }
+  
+  footer {
+    background-color: #4b2e83;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+  }
