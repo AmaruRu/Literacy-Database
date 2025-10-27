@@ -4,6 +4,7 @@ from flask_login import LoginManager, current_user
 import logging
 import os
 from dotenv import load_dotenv
+from urllib.parse import quote_plus
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -19,7 +20,7 @@ def create_website():
     website.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
 
     website.config["SQLALCHEMY_DATABASE_URI"] = 'mysql+pymysql://' + os.getenv("MYSQL_USER") + \
-        ':' + os.getenv("MYSQL_PASSWORD") + '@' + os.getenv("MYSQL_HOST") + '/' + os.getenv("MYSQL_DB")
+        ':' + quote_plus(os.getenv("MYSQL_PASSWORD")) + '@' + os.getenv("MYSQL_HOST") + '/' + os.getenv("MYSQL_DB")
     
     db.init_app(website)
 

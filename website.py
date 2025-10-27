@@ -1,8 +1,6 @@
-from flask import Flask, request, jsonify, url_for, render_template
+from flask import render_template
 from project import create_website
-from bs4 import BeautifulSoup
 import webbrowser
-import os
 
 website = create_website()
 
