@@ -1,19 +1,32 @@
 from flask import Flask, request, jsonify, url_for, render_template
-from MS_Lit.project import create_website
+from project import create_website
+from bs4 import BeautifulSoup
+import webbrowser
+import os
 
 website = create_website()
 
+webbrowser.open('http://127.0.0.1:5000/')
+
 @website.route('/', methods = ['GET'])
 def home():
-    return jsonify(("Welcome to Mississippi Literacy"))
+    return render_template('layout.html')
 
-@website.route('/mission', methods = ['GET'])
+@website.route('/mission.html', methods = ['GET'])
 def mission():
-    return render_template('index.html')
+    return render_template('mission.html')
 
-@website.route('/books', methods = ['GET'])
+@website.route('/books.html', methods = ['GET'])
 def books():
-    return jsonify(("Book Exploration in Mississippi"))
+    return render_template('books.html')
+
+@website.route('/map.html', methods = ['GET'])
+def map_page():
+    return render_template('map.html')
+
+@website.route('/dashboard.html', methods = ['GET'])
+def dashboard():
+    return render_template('dashboard.html')
 
 if __name__ == '__main__':
     website.run(debug = True)
