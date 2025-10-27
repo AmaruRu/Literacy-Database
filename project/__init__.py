@@ -24,8 +24,12 @@ def create_website():
     
     db.init_app(website)
 
+    # Register API blueprints
+    from .api import api_bp
+    website.register_blueprint(api_bp)
+
     with website.app_context():
-       from .models import User
+       from .models import User, Districts, Schools, Subgroups, PerformanceData, TeacherQuality, NAEPAssessments
        
        db.create_all()
        

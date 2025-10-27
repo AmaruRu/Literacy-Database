@@ -4,7 +4,7 @@ import webbrowser
 
 website = create_website()
 
-webbrowser.open('http://127.0.0.1:5000/')
+webbrowser.open('http://127.0.0.1:5001/')
 
 @website.route('/', methods = ['GET'])
 def home():
@@ -27,4 +27,4 @@ def dashboard():
     return render_template('dashboard.html')
 
 if __name__ == '__main__':
-    website.run(debug = True)
+    website.run(debug=True, port=5001)
