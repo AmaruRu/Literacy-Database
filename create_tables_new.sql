@@ -3,6 +3,19 @@
 -- Database: literacy_db (MySQL)
 -- Based on actual literacy_data.sql structure with proper normalization
 
+-- Use the database (created by setup script)
+USE literacy_db;
+
+-- Drop existing tables if they exist (for clean reinstall)
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS Performance_Data;
+DROP TABLE IF EXISTS Teacher_Quality;
+DROP TABLE IF EXISTS NAEP_Assessments;
+DROP TABLE IF EXISTS Schools;
+DROP TABLE IF EXISTS Subgroups;
+DROP TABLE IF EXISTS Districts;
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- Districts Table: Stores district information
 CREATE TABLE Districts (
   District_ID INT AUTO_INCREMENT PRIMARY KEY,

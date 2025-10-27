@@ -51,6 +51,8 @@ The application uses a normalized MySQL database with comprehensive literacy dat
 
 ## 🚀 Installation & Setup
 
+### Quick Setup (Recommended)
+
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
@@ -68,14 +70,7 @@ The application uses a normalized MySQL database with comprehensive literacy dat
    pip install -r requirements.txt
    ```
 
-4. **Set up MySQL database**
-   - Create a MySQL database named `literacy_db`
-   - Run the schema:
-   ```bash
-   mysql -u your_username -p literacy_db < create_tables_new.sql
-   ```
-
-5. **Configure environment variables**
+4. **Configure environment variables**
    Create a `.env` file in the project root:
    ```
    MYSQL_HOST=localhost
@@ -84,18 +79,43 @@ The application uses a normalized MySQL database with comprehensive literacy dat
    MYSQL_DB=literacy_db
    ```
 
-6. **Import sample data (optional)**
-   If you have the literacy data file:
+5. **Run automated setup**
    ```bash
-   python3 dev/import_data.py
+   python3 setup.py
    ```
+   
+   This single command will:
+   - ✅ Test MySQL connection
+   - ✅ Create the `literacy_db` database
+   - ✅ Create all tables with proper schema
+   - ✅ Import 19,377+ literacy records
+   - ✅ Validate the complete installation
 
-7. **Run the application**
+6. **Start the application**
    ```bash
    python3 website.py
    ```
 
    The app will start on `http://127.0.0.1:5001` and automatically open in your browser.
+
+### Manual Setup (Alternative)
+
+If you prefer manual setup or need to troubleshoot:
+
+1. **Create MySQL database**
+   ```bash
+   mysql -u your_username -p -e "CREATE DATABASE literacy_db;"
+   ```
+
+2. **Run database schema**
+   ```bash
+   mysql -u your_username -p literacy_db < create_tables_new.sql
+   ```
+
+3. **Import data**
+   ```bash
+   python3 dev/import_data.py
+   ```
 
 ## 📁 Project Structure
 
