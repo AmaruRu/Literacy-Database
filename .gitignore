@@ -100,3 +100,4 @@ yarn-debug.log*
 yarn-error.log*
 # Development files (optional - can include if you want to track them)
 # dev/
+.env
