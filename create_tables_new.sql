@@ -142,25 +142,13 @@ CREATE TABLE NAEP_Assessments (
   School_ID INT,
   Subgroup_ID INT NOT NULL,
   
-  -- 4th Grade Math
-  Grade_4_Math_Below_Basic DECIMAL(5,2) CHECK (Grade_4_Math_Below_Basic BETWEEN 0 AND 100),
-  Grade_4_Math_Basic DECIMAL(5,2) CHECK (Grade_4_Math_Basic BETWEEN 0 AND 100),
-  Grade_4_Math_Proficient DECIMAL(5,2) CHECK (Grade_4_Math_Proficient BETWEEN 0 AND 100),
-  Grade_4_Math_Advanced DECIMAL(5,2) CHECK (Grade_4_Math_Advanced BETWEEN 0 AND 100),
-  
-  -- 4th Grade Reading
+  -- 4th Grade Reading (Literacy Focus)
   Grade_4_Reading_Below_Basic DECIMAL(5,2) CHECK (Grade_4_Reading_Below_Basic BETWEEN 0 AND 100),
   Grade_4_Reading_Basic DECIMAL(5,2) CHECK (Grade_4_Reading_Basic BETWEEN 0 AND 100),
   Grade_4_Reading_Proficient DECIMAL(5,2) CHECK (Grade_4_Reading_Proficient BETWEEN 0 AND 100),
   Grade_4_Reading_Advanced DECIMAL(5,2) CHECK (Grade_4_Reading_Advanced BETWEEN 0 AND 100),
   
-  -- 8th Grade Math
-  Grade_8_Math_Below_Basic DECIMAL(5,2) CHECK (Grade_8_Math_Below_Basic BETWEEN 0 AND 100),
-  Grade_8_Math_Basic DECIMAL(5,2) CHECK (Grade_8_Math_Basic BETWEEN 0 AND 100),
-  Grade_8_Math_Proficient DECIMAL(5,2) CHECK (Grade_8_Math_Proficient BETWEEN 0 AND 100),
-  Grade_8_Math_Advanced DECIMAL(5,2) CHECK (Grade_8_Math_Advanced BETWEEN 0 AND 100),
-  
-  -- 8th Grade Reading
+  -- 8th Grade Reading (Literacy Focus)
   Grade_8_Reading_Below_Basic DECIMAL(5,2) CHECK (Grade_8_Reading_Below_Basic BETWEEN 0 AND 100),
   Grade_8_Reading_Basic DECIMAL(5,2) CHECK (Grade_8_Reading_Basic BETWEEN 0 AND 100),
   Grade_8_Reading_Proficient DECIMAL(5,2) CHECK (Grade_8_Reading_Proficient BETWEEN 0 AND 100),

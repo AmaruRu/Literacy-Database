@@ -156,25 +156,13 @@ class NAEPAssessments(db.Model):
     School_ID = db.Column(db.Integer, db.ForeignKey('Schools.School_ID'), nullable=True)
     Subgroup_ID = db.Column(db.Integer, db.ForeignKey('Subgroups.Subgroup_ID'), nullable=False)
     
-    # 4th Grade Math
-    Grade_4_Math_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_4_Math_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_4_Math_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_4_Math_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
-    
-    # 4th Grade Reading
+    # 4th Grade Reading (Literacy Focus)
     Grade_4_Reading_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_4_Reading_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_4_Reading_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_4_Reading_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
     
-    # 8th Grade Math
-    Grade_8_Math_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_8_Math_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_8_Math_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_8_Math_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
-    
-    # 8th Grade Reading
+    # 8th Grade Reading (Literacy Focus)
     Grade_8_Reading_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_8_Reading_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_8_Reading_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
