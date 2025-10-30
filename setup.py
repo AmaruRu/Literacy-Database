@@ -41,7 +41,7 @@ class DatabaseSetup:
             missing_items.append(".env file (copy .env.example and configure)")
         
         # Check required files
-        required_files = ['create_tables_new.sql', 'literacy_data.sql', 'requirements.txt']
+        required_files = ['literacy_tables.sql', 'literacy_data.sql', 'requirements.txt']
         for file in required_files:
             if not os.path.exists(file):
                 missing_items.append(f"{file}")
@@ -115,7 +115,7 @@ class DatabaseSetup:
                 self.database
             ]
             
-            with open('create_tables_new.sql', 'r') as schema_file:
+            with open('literacy_tables.sql', 'r') as schema_file:
                 result = subprocess.run(
                     cmd,
                     input=schema_file.read(),
