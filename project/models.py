@@ -1,4 +1,4 @@
-from . import db
+from . import db    # Import the db instance from the current package; this is the SQLAlchemy instance initialized in __init__.py
 from flask_login import UserMixin
 from datetime import datetime
 
@@ -14,8 +14,9 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f'<User {self.username}>'
 
-
-class Districts(db.Model):
+# Database Models; Districts, Schools, Subgroups, PerformanceData, TeacherQuality, NAEPAssessments
+class Districts(db.Model): # Districts model representing school districts.
+                            #Each district can have multiple schools and associated performance data.
     __tablename__ = 'Districts'
     
     District_ID = db.Column(db.Integer, primary_key=True)
