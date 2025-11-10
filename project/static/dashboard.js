@@ -283,11 +283,18 @@ function createSubgroupChart(categories) {
         'Race_Ethnicity': '#dc3545',
         'Special_Population': '#ffc107'
     };
+    
+    const displayLabels = {
+        'All': 'All',
+        'Gender': 'Gender',
+        'Race_Ethnicity': 'Race/Ethnicity',
+        'Special_Population': 'Vulnerable Population'
+    };
 
     Object.keys(categories).forEach(category => {
         if (categories[category].length > 0) {
             datasets.push({
-                label: category.replace('_', '/'),
+                label: displayLabels[category] || category.replace('_', '/'),
                 data: categories[category].map(item => item.proficiency),
                 backgroundColor: colors[category] + '80', // Add transparency
                 borderColor: colors[category],
