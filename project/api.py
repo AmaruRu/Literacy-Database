@@ -254,6 +254,9 @@ def get_district_rankings():
                 'error': "'All' subgroup not found"
             }), 404
         
+        # Get most recent year for accurate comparison
+        recent_year = db.session.query(func.max(PerformanceData.School_Year)).scalar()
+        
         # Calculate average English proficiency by district
         rankings = db.session.query(
             Districts.District_Name,
@@ -262,7 +265,9 @@ def get_district_rankings():
             func.count(PerformanceData.Performance_ID).label('record_count')
         ).join(PerformanceData).filter(
             PerformanceData.Subgroup_ID == all_subgroup.Subgroup_ID,
-            PerformanceData.English_Proficiency.isnot(None)
+            PerformanceData.English_Proficiency.isnot(None),
+            PerformanceData.School_Year == recent_year,
+            PerformanceData.Assessment_Type == 'District'
         ).group_by(
             Districts.District_ID, Districts.District_Name
         ).order_by(
