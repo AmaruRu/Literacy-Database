@@ -10,10 +10,6 @@ webbrowser.open('http://127.0.0.1:5001/')
 def home():
     return render_template('layout.html')
 
-@website.route('/mission.html', methods = ['GET'])
-def mission():
-    return render_template('mission.html')
-
 @website.route('/books.html', methods = ['GET'])
 def books():
     return render_template('books.html')

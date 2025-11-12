@@ -1,4 +1,4 @@
-from . import db
+from . import db    # Import the db instance from the current package; this is the SQLAlchemy instance initialized in __init__.py
 from flask_login import UserMixin
 from datetime import datetime
 
@@ -14,8 +14,9 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f'<User {self.username}>'
 
-
-class Districts(db.Model):
+# Database Models; Districts, Schools, Subgroups, PerformanceData, TeacherQuality, NAEPAssessments
+class Districts(db.Model): # Districts model representing school districts.
+                            #Each district can have multiple schools and associated performance data.
     __tablename__ = 'Districts'
     
     District_ID = db.Column(db.Integer, primary_key=True)
@@ -156,25 +157,13 @@ class NAEPAssessments(db.Model):
     School_ID = db.Column(db.Integer, db.ForeignKey('Schools.School_ID'), nullable=True)
     Subgroup_ID = db.Column(db.Integer, db.ForeignKey('Subgroups.Subgroup_ID'), nullable=False)
     
-    # 4th Grade Math
-    Grade_4_Math_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_4_Math_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_4_Math_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_4_Math_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
-    
-    # 4th Grade Reading
+    # 4th Grade Reading (Literacy Focus)
     Grade_4_Reading_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_4_Reading_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_4_Reading_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_4_Reading_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
     
-    # 8th Grade Math
-    Grade_8_Math_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_8_Math_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_8_Math_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_8_Math_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
-    
-    # 8th Grade Reading
+    # 8th Grade Reading (Literacy Focus)
     Grade_8_Reading_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_8_Reading_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_8_Reading_Proficient = db.Column(db.Numeric(5, 2), nullable=True)

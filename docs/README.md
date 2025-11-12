@@ -23,9 +23,9 @@ The application uses a normalized MySQL database with comprehensive literacy dat
 - **Districts** (147 records): School district information and metadata
 - **Schools** (853 records): Individual schools linked to districts
 - **Subgroups** (29 categories): Demographic and special population classifications
-- **Performance_Data** (19,377 records): Detailed literacy metrics with 5-level proficiency scales
+- **Performance_Data** (18,052 records): Detailed literacy metrics with 5-level proficiency scales
 - **Teacher_Quality**: Teacher experience and certification metrics by poverty level
-- **NAEP_Assessments**: National assessment data for 4th and 8th grade reading/math
+- **NAEP_Assessments**: National assessment data for 4th and 8th grade reading assessments
 
 ### Key Metrics Tracked
 - English proficiency percentages and growth rates
@@ -51,6 +51,8 @@ The application uses a normalized MySQL database with comprehensive literacy dat
 
 ## 🚀 Installation & Setup
 
+### Quick Setup (Recommended)
+
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
@@ -68,14 +70,7 @@ The application uses a normalized MySQL database with comprehensive literacy dat
    pip install -r requirements.txt
    ```
 
-4. **Set up MySQL database**
-   - Create a MySQL database named `literacy_db`
-   - Run the schema:
-   ```bash
-   mysql -u your_username -p literacy_db < create_tables_new.sql
-   ```
-
-5. **Configure environment variables**
+4. **Configure environment variables**
    Create a `.env` file in the project root:
    ```
    MYSQL_HOST=localhost
@@ -84,18 +79,43 @@ The application uses a normalized MySQL database with comprehensive literacy dat
    MYSQL_DB=literacy_db
    ```
 
-6. **Import sample data (optional)**
-   If you have the literacy data file:
+5. **Run automated setup**
    ```bash
-   python3 dev/import_data.py
+   python3 setup.py
    ```
+   
+   This single command will:
+   - ✅ Test MySQL connection
+   - ✅ Create the `literacy_db` database
+   - ✅ Create all tables with proper schema
+   - ✅ Import 18,052+ literacy records
+   - ✅ Validate the complete installation
 
-7. **Run the application**
+6. **Start the application**
    ```bash
    python3 website.py
    ```
 
    The app will start on `http://127.0.0.1:5001` and automatically open in your browser.
+
+### Manual Setup (Alternative)
+
+If you prefer manual setup or need to troubleshoot:
+
+1. **Create MySQL database**
+   ```bash
+   mysql -u your_username -p -e "CREATE DATABASE literacy_db;"
+   ```
+
+2. **Run database schema**
+   ```bash
+   mysql -u your_username -p literacy_db < create_tables_new.sql
+   ```
+
+3. **Import data**
+   ```bash
+   python3 dev/import_data.py
+   ```
 
 ## 📁 Project Structure
 
@@ -115,10 +135,18 @@ Literacy-Database/
 │       ├── map.html         # Literacy map (placeholder)
 │       ├── mission.html     # Mission page
 │       └── books.html       # Resources page
-├── 📁 dev/                  # Development tools
+├── 📁 dev/                  # Development tools & validation
 │   ├── import_data.py       # Data import script
 │   ├── test_api.py          # API testing suite
-│   └── test_models.py       # Model testing suite
+│   ├── test_models.py       # Model testing suite
+│   ├── validate_database.py # Database validation & integrity checks
+│   ├── cleanup_data.py      # Data standardization & quality control
+│   ├── remove_duplicates.py # Duplicate record detection & removal
+│   └── monitor_health.py    # Daily health monitoring
+├── 📁 docs/                 # Documentation & analysis
+│   ├── README.md            # This comprehensive documentation
+│   ├── CODEBASE_ANALYSIS.md # Detailed technical analysis
+│   └── DATA_ACCURACY_GUIDE.md # Data quality validation guide
 ├── website.py               # Application entry point
 ├── create_tables_new.sql    # Current database schema
 ├── literacy_data.sql        # Original data source (6MB)
@@ -131,7 +159,7 @@ Literacy-Database/
 ## 🔧 Development Status
 
 ### ✅ Completed Features
-- **🗄️ Database**: Normalized schema with 19,377+ literacy records from 147 districts
+- **🗄️ Database**: Normalized schema with 18,052+ literacy records from 147 districts (duplicates removed)
 - **🔌 API**: Comprehensive RESTful endpoints for data access and analytics
 - **📊 Dashboard**: Interactive visualizations with Chart.js integration
 - **🏗️ Backend**: Complete Flask application with SQLAlchemy models
@@ -139,6 +167,8 @@ Literacy-Database/
 - **📈 Analytics**: District rankings, subgroup comparisons, performance distributions
 - **🔍 Filtering**: District-specific data filtering and search capabilities
 - **⚙️ Infrastructure**: Environment configuration, error handling, logging
+- **🔧 Data Quality**: Automated validation, duplicate detection, and data standardization
+- **📊 Monitoring**: Health checks, validation reports, and data quality tracking
 
 ### 🚧 Future Enhancements
 - **🗺️ Interactive Map**: Mississippi district map with performance overlays
@@ -183,6 +213,49 @@ curl http://localhost:5001/api/performance?district_id=1
 curl http://localhost:5001/api/analytics/subgroup-performance
 ```
 
+## 🔧 Data Quality & Validation Tools
+
+The application includes comprehensive data validation and monitoring tools in the `/dev` directory:
+
+### Validation Tools
+- **`validate_database.py`** - Comprehensive database integrity checks
+  - Schema consistency validation against expected structure
+  - Data quality analysis (NULL values, outliers, missing data)
+  - Record count verification between source and database
+  - Generates detailed JSON reports with issue severity levels
+
+- **`cleanup_data.py`** - Data standardization and quality control
+  - Converts NULL percentage values to 0.0 (representing sub-1% values)
+  - Adds data quality flags for tracking cleaned records
+  - Ensures consistent data formatting across all tables
+
+- **`remove_duplicates.py`** - Duplicate detection and removal
+  - Identifies duplicate records based on key field combinations
+  - Safely removes duplicates while preserving data integrity
+  - Provides detailed reports on removed records
+
+### Monitoring Tools
+- **`monitor_health.py`** - Daily health monitoring and alerts
+  - Database connectivity checks
+  - Record count monitoring for data consistency
+  - Data quality flag tracking
+  - Generates health logs in JSON Lines format
+
+### Usage Examples
+```bash
+# Validate entire database integrity
+python3 dev/validate_database.py
+
+# Clean up NULL values and standardize data
+python3 dev/cleanup_data.py
+
+# Remove duplicate records
+python3 dev/remove_duplicates.py
+
+# Check daily health metrics
+python3 dev/monitor_health.py
+```
+
 ## 🐛 Troubleshooting
 
 ### Common Issues
@@ -211,6 +284,12 @@ curl http://localhost:5001/api/analytics/subgroup-performance
 - Ensure `literacy_data.sql` is in the root directory for import
 - Check database permissions for the MySQL user
 - Verify sufficient disk space for the 6MB dataset
+- Run `python3 dev/validate_database.py` to check data integrity after import
+
+**Data Quality Validation**
+- Use `python3 dev/validate_database.py` for comprehensive database checks
+- Run `python3 dev/remove_duplicates.py` if duplicate records are detected
+- Execute `python3 dev/cleanup_data.py` to standardize NULL values to 0.0
 
 ## 🤝 Contributing
 
@@ -227,9 +306,10 @@ This project aims to improve literacy awareness in Mississippi. We welcome contr
 ### Development Setup
 1. Fork the repository and create a feature branch
 2. Follow the installation instructions above
-3. Use the development tools in the `/dev` folder for testing
+3. Use the development tools in the `/dev` folder for testing and validation
 4. Run tests: `python3 dev/test_api.py` and `python3 dev/test_models.py`
-5. Submit a pull request with clear description of changes
+5. Validate database integrity: `python3 dev/validate_database.py`
+6. Submit a pull request with clear description of changes
 
 ### Code Standards
 - Follow PEP 8 for Python code style
@@ -243,6 +323,7 @@ This project aims to improve literacy awareness in Mississippi. We welcome contr
 - **Coverage**: All public school districts in Mississippi
 - **Metrics**: English proficiency, performance levels, demographic breakdowns
 - **Quality**: Cleaned and normalized data with comprehensive validation
+- **Integrity**: Duplicate removal, NULL value standardization, schema validation
 
 ## 📄 License
 
