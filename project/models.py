@@ -36,22 +36,26 @@ class Districts(db.Model):
 
 class Schools(db.Model):
     __tablename__ = 'Schools'
-    
+
     School_ID = db.Column(db.Integer, primary_key=True)
     School_Number = db.Column(db.Integer, nullable=False)
     School_Name = db.Column(db.String(255), nullable=False)
     District_ID = db.Column(db.Integer, db.ForeignKey('Districts.District_ID'), nullable=False)
+    ZIP_Code = db.Column(db.String(10), nullable=True)
+    City = db.Column(db.String(100), nullable=True)
+    Street_Address = db.Column(db.String(255), nullable=True)
+    County_Name = db.Column(db.String(100), nullable=True)
     Created_At = db.Column(db.DateTime, default=datetime.utcnow)
     Updated_At = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relationships
     performance_data = db.relationship('PerformanceData', backref='school', lazy=True, cascade='all, delete-orphan')
     teacher_quality = db.relationship('TeacherQuality', backref='school', lazy=True, cascade='all, delete-orphan')
     naep_assessments = db.relationship('NAEPAssessments', backref='school', lazy=True, cascade='all, delete-orphan')
-    
+
     # Unique constraint
     __table_args__ = (db.UniqueConstraint('School_Number', 'District_ID', name='unique_school_district'),)
-    
+
     def __repr__(self):
         return f'<School {self.School_Name}>'
 

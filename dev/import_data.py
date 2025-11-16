@@ -277,7 +277,7 @@ def main():
         
         # Parse the literacy data file
         print("Parsing literacy_data.sql...")
-        records = parse_literacy_data_file('literacy_data.sql')
+        records = parse_literacy_data_file('MS_Lit/literacy_data.sql')
         print(f"Found {len(records)} records to import")
         
         # Import data in batches

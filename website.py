@@ -1,3 +1,4 @@
+# Hey hey hey hey, we need to add zip codes to the database, dashboard, and literacy map
 from flask import render_template
 from project import create_website
 import webbrowser
