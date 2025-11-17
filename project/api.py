@@ -1175,6 +1175,152 @@ def get_county_districts_schools(county_name):
             'error': str(e)
         }), 500
 
+@api_bp.route('/filters/counties', methods=['GET'])
+def get_filter_counties():
+    """Get all unique counties for filtering"""
+    try:
+        counties = db.session.query(Locations.county).distinct().filter(
+            Locations.county.isnot(None)
+        ).order_by(Locations.county).all()
+        
+        result = [county[0] for county in counties if county[0]]
+        
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/filters/cities', methods=['GET'])
+def get_filter_cities():
+    """Get all unique cities for filtering"""
+    try:
+        county = request.args.get('county')
+        
+        query = db.session.query(Locations.city).distinct().filter(
+            Locations.city.isnot(None)
+        )
+        
+        if county:
+            query = query.filter(Locations.county == county)
+            
+        cities = query.order_by(Locations.city).all()
+        result = [city[0] for city in cities if city[0]]
+        
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/filters/zip-codes', methods=['GET'])
+def get_filter_zip_codes():
+    """Get all unique zip codes for filtering"""
+    try:
+        county = request.args.get('county')
+        city = request.args.get('city')
+        
+        query = db.session.query(Locations.zip_code).distinct().filter(
+            Locations.zip_code.isnot(None)
+        )
+        
+        if county:
+            query = query.filter(Locations.county == county)
+        if city:
+            query = query.filter(Locations.city == city)
+            
+        zip_codes = query.order_by(Locations.zip_code).all()
+        result = [zip_code[0] for zip_code in zip_codes if zip_code[0]]
+        
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/filters/school-types', methods=['GET'])
+def get_filter_school_types():
+    """Get all unique school types for filtering"""
+    try:
+        school_types = db.session.query(Schools.school_type).distinct().filter(
+            Schools.school_type.isnot(None)
+        ).order_by(Schools.school_type).all()
+        
+        result = [school_type[0] for school_type in school_types if school_type[0]]
+        
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/filters/grade-levels', methods=['GET'])
+def get_filter_grade_levels():
+    """Get all unique grade levels for filtering"""
+    try:
+        grade_levels = db.session.query(PerformanceRecords.grade_level).distinct().filter(
+            PerformanceRecords.grade_level.isnot(None)
+        ).order_by(PerformanceRecords.grade_level).all()
+        
+        result = [grade_level[0] for grade_level in grade_levels if grade_level[0]]
+        
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/filters/demographic-groups', methods=['GET'])
+def get_filter_demographic_groups():
+    """Get all demographic groups for filtering"""
+    try:
+        subgroup_type = request.args.get('subgroup_type')
+        
+        query = DemographicGroups.query
+        
+        if subgroup_type:
+            query = query.filter(DemographicGroups.subgroup_type == subgroup_type)
+            
+        groups = query.order_by(DemographicGroups.subgroup_name).all()
+        
+        result = []
+        for group in groups:
+            result.append({
+                'group_id': group.group_id,
+                'subgroup_name': group.subgroup_name,
+                'subgroup_type': group.subgroup_type
+            })
+        
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @api_bp.route('/health', methods=['GET'])
 def health_check():
     """API health check endpoint"""
@@ -1184,6 +1330,7 @@ def health_check():
         school_count = Schools.query.count()
         performance_records_count = PerformanceRecords.query.count()
         book_count = Books.query.count()
+        demographic_count = DemographicGroups.query.count()
         
         return jsonify({
             'success': True,
@@ -1193,7 +1340,8 @@ def health_check():
                 'districts': district_count,
                 'schools': school_count,
                 'performance_records': performance_records_count,
-                'books': book_count
+                'books': book_count,
+                'demographic_groups': demographic_count
             }
         })
     
