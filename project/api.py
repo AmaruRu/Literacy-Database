@@ -4,7 +4,7 @@ API endpoints for Mississippi Literacy Database
 
 from flask import Blueprint, jsonify, request
 from sqlalchemy import func
-from .models import Districts, Schools, Subgroups, PerformanceData, TeacherQuality, NAEPAssessments
+from .models import Locations, Districts, Schools, DemographicGroups, AcademicYears, PerformanceRecords, TeacherQuality, NAEPAssessments
 from . import db
 
 # Create API blueprint
@@ -19,69 +19,19 @@ def get_districts():
         result = []
         for district in districts:
             result.append({
-                'district_id': district.District_ID,
-                'district_number': district.District_Number,
-                'district_name': district.District_Name,
+                'district_id': district.district_id,
+                'district_number': district.district_number,
+                'district_name': district.district_name,
                 'school_count': len(district.schools),
-                'created_at': district.Created_At.isoformat() if district.Created_At else None
+                'county': district.location.county if district.location else None,
+                'city': district.location.city if district.location else None,
+                'zip_code': district.location.zip_code if district.location else None
             })
         
         return jsonify({
             'success': True,
             'data': result,
             'count': len(result)
-        })
-    
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@api_bp.route('/districts/<int:district_id>', methods=['GET'])
-def get_district_detail(district_id):
-    """Get detailed information for a specific district"""
-    try:
-        district = Districts.query.get_or_404(district_id)
-        
-        # Get performance summary for 'All' students
-        all_subgroup = Subgroups.query.filter_by(Subgroup_Name='All').first()
-        
-        performance_summary = None
-        if all_subgroup:
-            perf_data = PerformanceData.query.filter_by(
-                District_ID=district_id,
-                Subgroup_ID=all_subgroup.Subgroup_ID
-            ).filter(PerformanceData.English_Proficiency.isnot(None)).first()
-            
-            if perf_data:
-                performance_summary = {
-                    'english_proficiency': float(perf_data.English_Proficiency) if perf_data.English_Proficiency else None,
-                    'english_growth': float(perf_data.English_Growth) if perf_data.English_Growth else None,
-                    'assessment_type': perf_data.Assessment_Type,
-                    'school_year': perf_data.School_Year
-                }
-        
-        result = {
-            'district_id': district.District_ID,
-            'district_number': district.District_Number,
-            'district_name': district.District_Name,
-            'school_count': len(district.schools),
-            'schools': [
-                {
-                    'school_id': school.School_ID,
-                    'school_name': school.School_Name,
-                    'school_number': school.School_Number
-                }
-                for school in district.schools
-            ],
-            'performance_summary': performance_summary,
-            'created_at': district.Created_At.isoformat() if district.Created_At else None
-        }
-        
-        return jsonify({
-            'success': True,
-            'data': result
         })
     
     except Exception as e:
@@ -99,18 +49,20 @@ def get_schools():
         query = Schools.query.join(Districts)
         
         if district_id:
-            query = query.filter(Schools.District_ID == district_id)
+            query = query.filter(Schools.district_id == district_id)
         
         schools = query.all()
         
         result = []
         for school in schools:
             result.append({
-                'school_id': school.School_ID,
-                'school_number': school.School_Number,
-                'school_name': school.School_Name,
-                'district_id': school.District_ID,
-                'district_name': school.district.District_Name
+                'school_id': school.school_id,
+                'school_number': school.school_number,
+                'school_name': school.school_name,
+                'district_id': school.district_id,
+                'district_name': school.district.district_name,
+                'school_type': school.school_type,
+                'grade_span': school.grade_span
             })
         
         return jsonify({
@@ -125,19 +77,19 @@ def get_schools():
             'error': str(e)
         }), 500
 
-@api_bp.route('/subgroups', methods=['GET'])
-def get_subgroups():
-    """Get all subgroups"""
+@api_bp.route('/demographic-groups', methods=['GET'])
+def get_demographic_groups():
+    """Get all demographic groups"""
     try:
-        subgroups = Subgroups.query.all()
+        groups = DemographicGroups.query.all()
         
         result = []
-        for subgroup in subgroups:
+        for group in groups:
             result.append({
-                'subgroup_id': subgroup.Subgroup_ID,
-                'subgroup_name': subgroup.Subgroup_Name,
-                'subgroup_category': subgroup.Subgroup_Category,
-                'record_count': len(subgroup.performance_data)
+                'group_id': group.group_id,
+                'subgroup_name': group.subgroup_name,
+                'subgroup_type': group.subgroup_type,
+                'record_count': len(group.performance_records)
             })
         
         return jsonify({
@@ -159,28 +111,25 @@ def get_performance_data():
         # Query parameters
         district_id = request.args.get('district_id', type=int)
         school_id = request.args.get('school_id', type=int)
-        subgroup_id = request.args.get('subgroup_id', type=int)
+        group_id = request.args.get('group_id', type=int)
         school_year = request.args.get('school_year', type=int)
+        subgroup_type = request.args.get('subgroup_type')
         limit = request.args.get('limit', default=100, type=int)
         
-        # Build query
-        query = PerformanceData.query.join(Subgroups)
-        
-        # Add joins for names
-        if district_id or not school_id:
-            query = query.outerjoin(Districts)
-        if school_id or district_id:
-            query = query.outerjoin(Schools)
+        # Build query with proper joins
+        query = PerformanceRecords.query.join(Schools).join(Districts).join(DemographicGroups).join(AcademicYears)
         
         # Apply filters
         if district_id:
-            query = query.filter(PerformanceData.District_ID == district_id)
+            query = query.filter(Districts.district_id == district_id)
         if school_id:
-            query = query.filter(PerformanceData.School_ID == school_id)
-        if subgroup_id:
-            query = query.filter(PerformanceData.Subgroup_ID == subgroup_id)
+            query = query.filter(PerformanceRecords.school_id == school_id)
+        if group_id:
+            query = query.filter(PerformanceRecords.group_id == group_id)
         if school_year:
-            query = query.filter(PerformanceData.School_Year == school_year)
+            query = query.filter(AcademicYears.school_year == school_year)
+        if subgroup_type:
+            query = query.filter(DemographicGroups.subgroup_type == subgroup_type)
         
         # Limit results
         performance_data = query.limit(limit).all()
@@ -188,38 +137,39 @@ def get_performance_data():
         result = []
         for perf in performance_data:
             result.append({
-                'performance_id': perf.Performance_ID,
-                'school_year': perf.School_Year,
-                'district_name': perf.district.District_Name if perf.district else None,
-                'school_name': perf.school.School_Name if perf.school else None,
-                'subgroup_name': perf.subgroup.Subgroup_Name,
-                'grade_level': perf.Grade_Level,
-                'assessment_type': perf.Assessment_Type,
-                'english_proficiency': float(perf.English_Proficiency) if perf.English_Proficiency else None,
-                'english_growth': float(perf.English_Growth) if perf.English_Growth else None,
+                'record_id': perf.record_id,
+                'school_year': perf.academic_year.school_year,
+                'district_name': perf.school.district.district_name,
+                'school_name': perf.school.school_name,
+                'school_type': perf.school.school_type,
+                'subgroup_name': perf.demographic_group.subgroup_name,
+                'subgroup_type': perf.demographic_group.subgroup_type,
+                'grade_level': perf.grade_level,
+                'english_proficiency': perf.english_proficiency,
+                'english_growth': perf.english_growth,
                 'performance_levels': {
                     'level_1': {
-                        'percent': float(perf.Performance_Level_1_Percent) if perf.Performance_Level_1_Percent else None,
-                        'students': perf.Performance_Level_1_Students
+                        'percent': perf.performance_level_1_pct,
+                        'count': perf.performance_level_1_count
                     },
                     'level_2': {
-                        'percent': float(perf.Performance_Level_2_Percent) if perf.Performance_Level_2_Percent else None,
-                        'students': perf.Performance_Level_2_Students
+                        'percent': perf.performance_level_2_pct,
+                        'count': perf.performance_level_2_count
                     },
                     'level_3': {
-                        'percent': float(perf.Performance_Level_3_Percent) if perf.Performance_Level_3_Percent else None,
-                        'students': perf.Performance_Level_3_Students
+                        'percent': perf.performance_level_3_pct,
+                        'count': perf.performance_level_3_count
                     },
                     'level_4': {
-                        'percent': float(perf.Performance_Level_4_Percent) if perf.Performance_Level_4_Percent else None,
-                        'students': perf.Performance_Level_4_Students
+                        'percent': perf.performance_level_4_pct,
+                        'count': perf.performance_level_4_count
                     },
                     'level_5': {
-                        'percent': float(perf.Performance_Level_5_Percent) if perf.Performance_Level_5_Percent else None,
-                        'students': perf.Performance_Level_5_Students
+                        'percent': perf.performance_level_5_pct,
+                        'count': perf.performance_level_5_count
                     }
                 },
-                'chronic_absenteeism': float(perf.Chronic_Absenteeism_Percent) if perf.Chronic_Absenteeism_Percent else None
+                'chronic_absenteeism_pct': perf.chronic_absenteeism_pct
             })
         
         return jsonify({
@@ -229,8 +179,9 @@ def get_performance_data():
             'filters_applied': {
                 'district_id': district_id,
                 'school_id': school_id,
-                'subgroup_id': subgroup_id,
+                'group_id': group_id,
                 'school_year': school_year,
+                'subgroup_type': subgroup_type,
                 'limit': limit
             }
         })
@@ -241,12 +192,12 @@ def get_performance_data():
             'error': str(e)
         }), 500
 
-@api_bp.route('/analytics/district-rankings', methods=['GET'])
-def get_district_rankings():
-    """Get district rankings by English proficiency"""
+@api_bp.route('/analytics/county-performance', methods=['GET'])
+def get_county_performance():
+    """Get performance data grouped by county"""
     try:
         # Get 'All' subgroup for fair comparison
-        all_subgroup = Subgroups.query.filter_by(Subgroup_Name='All').first()
+        all_subgroup = DemographicGroups.query.filter_by(subgroup_name='All').first()
         
         if not all_subgroup:
             return jsonify({
@@ -254,29 +205,32 @@ def get_district_rankings():
                 'error': "'All' subgroup not found"
             }), 404
         
-        # Calculate average English proficiency by district
-        rankings = db.session.query(
-            Districts.District_Name,
-            Districts.District_ID,
-            func.avg(PerformanceData.English_Proficiency).label('avg_english_proficiency'),
-            func.count(PerformanceData.Performance_ID).label('record_count')
-        ).join(PerformanceData).filter(
-            PerformanceData.Subgroup_ID == all_subgroup.Subgroup_ID,
-            PerformanceData.English_Proficiency.isnot(None)
+        # Calculate average English proficiency by county
+        county_performance = db.session.query(
+            Locations.county,
+            func.avg(PerformanceRecords.english_proficiency).label('avg_english_proficiency'),
+            func.count(PerformanceRecords.record_id).label('record_count'),
+            func.count(func.distinct(Districts.district_id)).label('district_count')
+        ).join(Districts, Locations.location_id == Districts.location_id)\
+         .join(Schools, Districts.district_id == Schools.district_id)\
+         .join(PerformanceRecords, Schools.school_id == PerformanceRecords.school_id)\
+         .filter(
+            PerformanceRecords.group_id == all_subgroup.group_id,
+            PerformanceRecords.english_proficiency.isnot(None),
+            Locations.county.isnot(None)
         ).group_by(
-            Districts.District_ID, Districts.District_Name
+            Locations.county
         ).order_by(
-            func.avg(PerformanceData.English_Proficiency).desc()
-        ).limit(20).all()
+            func.avg(PerformanceRecords.english_proficiency).desc()
+        ).all()
         
         result = []
-        for rank, (district_name, district_id, avg_proficiency, record_count) in enumerate(rankings, 1):
+        for county, avg_proficiency, record_count, district_count in county_performance:
             result.append({
-                'rank': rank,
-                'district_id': district_id,
-                'district_name': district_name,
+                'county': county,
                 'average_english_proficiency': round(float(avg_proficiency), 1),
-                'record_count': record_count
+                'record_count': record_count,
+                'district_count': district_count
             })
         
         return jsonify({
@@ -295,32 +249,40 @@ def get_district_rankings():
 def get_subgroup_performance():
     """Get performance comparison across subgroups"""
     try:
-        district_id = request.args.get('district_id', type=int)
+        county = request.args.get('county')
+        school_year = request.args.get('school_year', type=int)
         
         # Build query for subgroup performance comparison
         query = db.session.query(
-            Subgroups.Subgroup_Name,
-            Subgroups.Subgroup_Category,
-            func.avg(PerformanceData.English_Proficiency).label('avg_english_proficiency'),
-            func.count(PerformanceData.Performance_ID).label('record_count')
-        ).join(PerformanceData).filter(
-            PerformanceData.English_Proficiency.isnot(None)
+            DemographicGroups.subgroup_name,
+            DemographicGroups.subgroup_type,
+            func.avg(PerformanceRecords.english_proficiency).label('avg_english_proficiency'),
+            func.count(PerformanceRecords.record_id).label('record_count')
+        ).join(PerformanceRecords).filter(
+            PerformanceRecords.english_proficiency.isnot(None)
         )
         
-        if district_id:
-            query = query.filter(PerformanceData.District_ID == district_id)
+        if county:
+            query = query.join(Schools, PerformanceRecords.school_id == Schools.school_id)\
+                        .join(Districts, Schools.district_id == Districts.district_id)\
+                        .join(Locations, Districts.location_id == Locations.location_id)\
+                        .filter(Locations.county == county)
+        
+        if school_year:
+            query = query.join(AcademicYears, PerformanceRecords.year_id == AcademicYears.year_id)\
+                        .filter(AcademicYears.school_year == school_year)
         
         subgroup_performance = query.group_by(
-            Subgroups.Subgroup_ID, Subgroups.Subgroup_Name, Subgroups.Subgroup_Category
+            DemographicGroups.group_id, DemographicGroups.subgroup_name, DemographicGroups.subgroup_type
         ).order_by(
-            Subgroups.Subgroup_Category, func.avg(PerformanceData.English_Proficiency).desc()
+            DemographicGroups.subgroup_type, func.avg(PerformanceRecords.english_proficiency).desc()
         ).all()
         
         result = []
-        for subgroup_name, category, avg_proficiency, record_count in subgroup_performance:
+        for subgroup_name, subgroup_type, avg_proficiency, record_count in subgroup_performance:
             result.append({
                 'subgroup_name': subgroup_name,
-                'subgroup_category': category,
+                'subgroup_type': subgroup_type,
                 'average_english_proficiency': round(float(avg_proficiency), 1) if avg_proficiency else None,
                 'record_count': record_count
             })
@@ -329,7 +291,10 @@ def get_subgroup_performance():
             'success': True,
             'data': result,
             'count': len(result),
-            'district_id': district_id
+            'filters': {
+                'county': county,
+                'school_year': school_year
+            }
         })
     
     except Exception as e:
@@ -344,12 +309,16 @@ def health_check():
     try:
         # Simple database connectivity check
         district_count = Districts.query.count()
+        school_count = Schools.query.count()
         
         return jsonify({
             'success': True,
             'status': 'healthy',
             'database': 'connected',
-            'district_count': district_count
+            'counts': {
+                'districts': district_count,
+                'schools': school_count
+            }
         })
     
     except Exception as e:
