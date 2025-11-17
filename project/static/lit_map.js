@@ -1,10 +1,21 @@
 // Initialize the map (centered on Mississippi)
-const map = L.map("map").setView([32.7364, -89.6678], 7);
+const map = L.map("map", {
+  center: [32.7364, -89.6678],
+  zoom: 6,
+  minZoom: 6.5,
+  maxZoom: 10,
+  maxBounds: [[29.5, -92.5], [36.0, -86.5]], // Restrict to Mississippi area with extra padding
+  maxBoundsViscosity: 1.0, // Makes the bounds completely solid
+  zoomControl: false // Disable default zoom buttons
+});
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 15,
-  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+// Use CartoDB Positron for a clean, light map style
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  subdomains: 'abcd',
+  maxZoom: 10
 }).addTo(map);
+
 
 // Function to get color based on English proficiency
 function getColor(proficiency) {
@@ -23,6 +34,8 @@ let geoJsonDataCache = {
   county: null,
   district: null
 };
+let selectedLayer = null; // Track currently selected layer
+let infoPanel = null; // Reference to info panel control
 
 // Function to create popup content for county view
 function createCountyPopup(countyName, county) {
@@ -213,6 +226,45 @@ async function createDistrictPopup(districtTitle, countyName) {
   return popupContent;
 }
 
+// Function to reset selected layer style
+function resetSelectedLayer() {
+  if (selectedLayer) {
+    const countyName = selectedLayer.feature.properties.name;
+    const county = literacyData[countyName];
+    const proficiency = county ? county.english_proficiency : null;
+
+    selectedLayer.setStyle({
+      color: '#4b2e83',
+      weight: 2,
+      opacity: 0.8,
+      fillColor: getColor(proficiency),
+      fillOpacity: 0.6
+    });
+    selectedLayer = null;
+  }
+}
+
+// Function to update info panel
+function updateInfoPanel(content) {
+  if (infoPanel) {
+    const container = infoPanel.getContainer();
+    if (container) {
+      container.innerHTML = content;
+      container.style.display = 'block';
+    }
+  }
+}
+
+// Function to hide info panel
+function hideInfoPanel() {
+  if (infoPanel) {
+    const container = infoPanel.getContainer();
+    if (container) {
+      container.style.display = 'none';
+    }
+  }
+}
+
 // Function to render county view
 function renderCountyView() {
   if (!geoJsonDataCache.county) {
@@ -224,6 +276,10 @@ function renderCountyView() {
   if (currentLayer) {
     map.removeLayer(currentLayer);
   }
+
+  // Reset selected layer
+  selectedLayer = null;
+  hideInfoPanel();
 
   currentLayer = L.geoJSON(geoJsonDataCache.county, {
     style: function(feature) {
@@ -243,21 +299,51 @@ function renderCountyView() {
       const countyName = feature.properties.name;
       const county = literacyData[countyName];
 
-      layer.bindPopup(createCountyPopup(countyName, county));
+      // Add click handler
+      layer.on('click', function(e) {
+        // Reset previous selection
+        if (selectedLayer && selectedLayer !== this) {
+          const prevCountyName = selectedLayer.feature.properties.name;
+          const prevCounty = literacyData[prevCountyName];
+          const prevProficiency = prevCounty ? prevCounty.english_proficiency : null;
+          selectedLayer.setStyle({
+            fillColor: getColor(prevProficiency),
+            fillOpacity: 0.6
+          });
+        }
+
+        // Highlight selected area in light blue color
+        this.setStyle({
+          fillColor: '#ccc8f8ff',
+          fillOpacity: 0.7
+        });
+
+        selectedLayer = this;
+
+        // Show popup content in info panel
+        const popupContent = createCountyPopup(countyName, county);
+        updateInfoPanel(popupContent);
+
+        L.DomEvent.stopPropagation(e);
+      });
 
       // Add hover effect
       layer.on('mouseover', function() {
-        this.setStyle({
-          weight: 3,
-          fillOpacity: 0.8
-        });
+        if (this !== selectedLayer) {
+          this.setStyle({
+            weight: 3,
+            fillOpacity: 0.8
+          });
+        }
       });
 
       layer.on('mouseout', function() {
-        this.setStyle({
-          weight: 2,
-          fillOpacity: 0.6
-        });
+        if (this !== selectedLayer) {
+          this.setStyle({
+            weight: 2,
+            fillOpacity: 0.6
+          });
+        }
       });
     }
   }).addTo(map);
@@ -276,6 +362,10 @@ function renderDistrictView() {
   if (currentLayer) {
     map.removeLayer(currentLayer);
   }
+
+  // Reset selected layer
+  selectedLayer = null;
+  hideInfoPanel();
 
   // Create a map to track which counties we've already colored
   const countyColors = {};
@@ -298,7 +388,7 @@ function renderDistrictView() {
       return {
         color: '#4b2e83',
         weight: 2,
-        opacity: 0.5,
+        opacity: 0.8,
         fillColor: fillColor,
         fillOpacity: 0.6
       };
@@ -308,33 +398,53 @@ function renderDistrictView() {
       const countyName = feature.properties.county_name;
       const districtTitle = feature.properties.title;
 
-      // Bind popup with loading message initially
-      const popup = L.popup({
-        maxWidth: 400,
-        maxHeight: 500
-      }).setContent('<div style="padding: 20px; text-align: center;">Loading district data...</div>');
+      // Add click handler
+      layer.on('click', async function(e) {
+        // Reset previous selection
+        if (selectedLayer && selectedLayer !== this) {
+          const prevCountyName = selectedLayer.feature.properties.county_name;
+          const prevColor = countyColors[prevCountyName] || '#cccccc';
+          selectedLayer.setStyle({
+            fillColor: prevColor,
+            fillOpacity: 0.6
+          });
+        }
 
-      layer.bindPopup(popup);
+        // Highlight selected area in light blue color
+        this.setStyle({
+          fillColor: '#ccc8f8ff',
+          fillOpacity: 0.7
+        });
 
-      // Load content when popup opens
-      layer.on('popupopen', async function() {
+        selectedLayer = this;
+
+        // Show loading in info panel
+        updateInfoPanel('<div style="padding: 20px; text-align: center;">Loading district data...</div>');
+
+        // Load and display content in info panel
         const content = await createDistrictPopup(districtTitle, countyName);
-        popup.setContent(content);
+        updateInfoPanel(content);
+
+        L.DomEvent.stopPropagation(e);
       });
 
       // Add hover effect
       layer.on('mouseover', function() {
-        this.setStyle({
-          weight: 3,
-          fillOpacity: 0.8
-        });
+        if (this !== selectedLayer) {
+          this.setStyle({
+            weight: 3,
+            fillOpacity: 0.8
+          });
+        }
       });
 
       layer.on('mouseout', function() {
-        this.setStyle({
-          weight: 2,
-          fillOpacity: 0.6
-        });
+        if (this !== selectedLayer) {
+          this.setStyle({
+            weight: 2,
+            fillOpacity: 0.6
+          });
+        }
       });
     }
   }).addTo(map);
@@ -394,6 +504,76 @@ Promise.all([
 
     viewControl.addTo(map);
 
+    // Add custom zoom slider control
+    const zoomSlider = L.control({ position: 'topright' });
+
+    zoomSlider.onAdd = function(map) {
+      const div = L.DomUtil.create('div', 'zoom-slider-control');
+
+      div.innerHTML = `
+        <div class="zoom-slider-container">
+          <span class="zoom-label">Zoom</span>
+          <input type="range"
+                 id="zoom-slider"
+                 class="zoom-slider"
+                 min="6.5"
+                 max="10"
+                 step="0.1"
+                 value="${map.getZoom()}"
+                 orient="horizontal">
+          <div class="zoom-levels">
+            <span>+</span>
+            <span>-</span>
+          </div>
+        </div>
+      `;
+
+      // Prevent map interactions when using slider
+      L.DomEvent.disableClickPropagation(div);
+      L.DomEvent.disableScrollPropagation(div);
+
+      return div;
+    };
+
+    zoomSlider.addTo(map);
+
+    // Connect slider to map zoom
+    const slider = document.getElementById('zoom-slider');
+    if (slider) {
+      slider.addEventListener('input', function() {
+        map.setZoom(parseFloat(this.value));
+      });
+
+      // Update slider when map zoom changes
+      map.on('zoomend', function() {
+        slider.value = map.getZoom();
+      });
+    }
+
+    // Add info panel control (below view buttons)
+    infoPanel = L.control({ position: 'topleft' });
+
+    infoPanel.onAdd = function(map) {
+      const div = L.DomUtil.create('div', 'info-panel');
+      div.style.display = 'none'; // Hidden by default
+      div.style.backgroundColor = 'white';
+      div.style.padding = '15px';
+      div.style.marginTop = '10px';
+      div.style.borderRadius = '5px';
+      div.style.boxShadow = '0 0 15px rgba(0,0,0,0.2)';
+      div.style.maxWidth = '400px';
+      div.style.maxHeight = '500px';
+      div.style.overflowY = 'auto';
+
+      // Prevent map interactions when clicking on panel
+      L.DomEvent.disableClickPropagation(div);
+      L.DomEvent.disableScrollPropagation(div);
+
+      return div;
+    };
+
+    infoPanel.addTo(map);
+
     // Add event listeners to buttons
     document.getElementById('county-btn').addEventListener('click', function() {
       toggleView('county');
@@ -403,10 +583,55 @@ Promise.all([
       toggleView('district');
     });
 
+    // Click on map background to deselect
+    map.on('click', function() {
+      if (selectedLayer) {
+        if (currentView === 'county') {
+          const countyName = selectedLayer.feature.properties.name;
+          const county = literacyData[countyName];
+          const proficiency = county ? county.english_proficiency : null;
+          selectedLayer.setStyle({
+            fillColor: getColor(proficiency),
+            fillOpacity: 0.6
+          });
+        } else {
+          // District view - need to get the color from countyColors
+          const countyName = selectedLayer.feature.properties.county_name;
+          // Access countyColors from the current layer
+          const layers = currentLayer.getLayers();
+          let originalColor = '#cccccc';
+          layers.forEach(l => {
+            if (l.feature.properties.county_name === countyName) {
+              const county = literacyData[countyName];
+              const proficiency = county ? county.english_proficiency : null;
+              originalColor = getColor(proficiency);
+            }
+          });
+          selectedLayer.setStyle({
+            fillColor: originalColor,
+            fillOpacity: 0.6
+          });
+        }
+        selectedLayer = null;
+        hideInfoPanel();
+      }
+    });
+
     // Render initial view (county view)
     renderCountyView();
 
-    // Add legend
+    // Fit map to show all of Mississippi with padding after a short delay
+    setTimeout(() => {
+      if (currentLayer) {
+        const bounds = currentLayer.getBounds();
+        map.fitBounds(bounds, {
+          padding: [80, 80], // Increased padding to ensure nothing is cut off
+          maxZoom: 7 // Don't zoom in too close
+        });
+      }
+    }, 100);
+
+    // Add legend (below zoom slider on right)
     const legend = L.control({ position: 'topright' });
 
     legend.onAdd = function(map) {

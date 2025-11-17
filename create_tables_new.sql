@@ -168,6 +168,23 @@ CREATE TABLE NAEP_Assessments (
   UNIQUE KEY unique_naep_record (School_Year, District_ID, School_ID, Subgroup_ID)
 );
 
+-- Books Table: Book recommendations based on grade level, Lexile, and literature type
+CREATE TABLE Books (
+  Book_ID INT AUTO_INCREMENT PRIMARY KEY,
+  Title VARCHAR(500) NOT NULL,
+  Author VARCHAR(255) NOT NULL,
+  Grade_Level VARCHAR(50) NOT NULL,
+  Lexile VARCHAR(20),
+  Literature_Type ENUM('Fiction', 'Nonfiction') NOT NULL,
+  Cover_URL VARCHAR(1000),
+  Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  Updated_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_grade_level (Grade_Level),
+  INDEX idx_lexile (Lexile),
+  INDEX idx_literature_type (Literature_Type),
+  INDEX idx_author (Author)
+);
+
 -- Insert default subgroups based on the data
 INSERT INTO Subgroups (Subgroup_Name, Subgroup_Category) VALUES
 ('All', 'All'),

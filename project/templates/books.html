@@ -3,39 +3,138 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Read Mississippi: Every Page Matters</title>
+  <title>Book Recommendations - Read Mississippi</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/books.css') }}">
 </head>
 <body>
   <header>
-    <h1>Books</h1>
-    <p class="tagline">Every Page Turned is a Step Toward Change</p>
+    <h1>Book Recommendations</h1>
+    <p class="tagline">Discover Your Next Book</p>
     <nav>
       <ul>
+        <li><a href="/"><button>Home</button></a></li>
         <li><a href="mission.html"><button>Mission</button></a></li>
         <li><a href="map.html"><button>Literacy Map</button></a></li>
-        <li><a href="books.html"><button>Books</button></a></li>
         <li><a href="dashboard.html"><button>Dashboard</button></a></li>
       </ul>
     </nav>
   </header>
 
-  <section id="hero">
-    <h2>Reading is an Adventure</h2>
-    <p>Join us as we explore Mississippi's literacy journey—one story, one student, one county at a time.</p>
-    <button onclick="scrollToSection('mission')">Start Exploring</button>
-  </section>
+  <section id="books-section">
+    <div class="filters-container">
+      <h2>Books for All Reading Levels</h2>
 
-  <section id="mission">
-    <h2>Our Mission</h2>
-    <p>We aim to raise awareness about literacy rates across Mississippi and empower communities to take action through the power of reading. Data meets storytelling on this journey.</p>
+      <div class="filters-horizontal">
+        <!-- Grade Level Book Stack -->
+        <div class="filter-group filter-grade">
+          <label>Grade Level:</label>
+          <div class="book-stack-container">
+            <!-- Grade 12 at top, Kindergarten at bottom -->
+            <div class="book-spine" data-grade="12th Grade" data-position="12">
+              <span class="book-label">Grade 12</span>
+            </div>
+            <div class="book-spine" data-grade="11th Grade" data-position="11">
+              <span class="book-label">Grade 11</span>
+            </div>
+            <div class="book-spine" data-grade="10th Grade" data-position="10">
+              <span class="book-label">Grade 10</span>
+            </div>
+            <div class="book-spine" data-grade="9th Grade" data-position="9">
+              <span class="book-label">Grade 9</span>
+            </div>
+            <div class="book-spine" data-grade="8th Grade" data-position="8">
+              <span class="book-label">Grade 8</span>
+            </div>
+            <div class="book-spine" data-grade="7th Grade" data-position="7">
+              <span class="book-label">Grade 7</span>
+            </div>
+            <div class="book-spine" data-grade="6th Grade" data-position="6">
+              <span class="book-label">Grade 6</span>
+            </div>
+            <div class="book-spine" data-grade="5th Grade" data-position="5">
+              <span class="book-label">Grade 5</span>
+            </div>
+            <div class="book-spine" data-grade="4th Grade" data-position="4">
+              <span class="book-label">Grade 4</span>
+            </div>
+            <div class="book-spine" data-grade="3rd Grade" data-position="3">
+              <span class="book-label">Grade 3</span>
+            </div>
+            <div class="book-spine" data-grade="2nd Grade" data-position="2">
+              <span class="book-label">Grade 2</span>
+            </div>
+            <div class="book-spine" data-grade="1st Grade" data-position="1">
+              <span class="book-label">Grade 1</span>
+            </div>
+            <div class="book-spine" data-grade="Kindergarten" data-position="0">
+              <span class="book-label">Kindergarten</span>
+            </div>
+          </div>
+          <button type="button" class="clear-grades-btn" onclick="clearGradeSelection()">Clear</button>
+        </div>
+
+        <!-- Literature Type and Lexile Range -->
+        <div class="filter-group filter-other">
+          <div class="filter-subgroup">
+            <label for="literature-select">Literature Type:</label>
+            <select id="literature-select">
+              <option value="">All</option>
+              <option value="Fiction">Fiction</option>
+              <option value="Nonfiction">Nonfiction</option>
+            </select>
+          </div>
+
+          <div class="filter-subgroup">
+            <label>Lexile Range:</label>
+            <div class="lexile-inputs-compact">
+              <input type="number" id="lexile-min" placeholder="Min" min="0" max="2000" step="10">
+              <span class="lexile-separator">to</span>
+              <input type="number" id="lexile-max" placeholder="Max" min="0" max="2000" step="10">
+            </div>
+            <small>Leave blank for all levels (including BR)</small>
+          </div>
+
+          <!-- Selected grades display -->
+          <div class="selected-grades-display">
+            <strong>Selected Grades:</strong> <span id="selected-grades-text">All Grades</span>
+          </div>
+          <div class="filter-actions">
+            <button class="btn-apply" onclick="applyFilters()">Apply Filters</button>
+            <button class="btn-clear" onclick="clearFilters()">Clear All Filters</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      
+
+    <div class="sort-container">
+      <label for="sort-select">Sort by:</label>
+      <select id="sort-select" onchange="applySorting(this.value)">
+        <option value="title-asc">Title (A-Z)</option>
+        <option value="title-desc">Title (Z-A)</option>
+        <option value="author-asc">Author Last Name (A-Z)</option>
+        <option value="author-desc">Author Last Name (Z-A)</option>
+        <option value="grade-asc">Grade Level (Ascending)</option>
+        <option value="grade-desc">Grade Level (Descending)</option>
+        <option value="lexile-asc">Lexile Level (Ascending)</option>
+        <option value="lexile-desc">Lexile Level (Descending)</option>
+        <option value="type-asc">Fiction - Nonfiction</option>
+        <option value="type-desc">Nonfiction - Fiction</option>
+      </select>
+    </div>
+
+    <div id="results-info" class="results-info"></div>
+    <div id="books-container" class="books-grid"></div>
+    <div id="pagination-container" class="pagination-container"></div>
   </section>
 
   <footer>
     <p>&copy; 2025 Read Mississippi</p>
   </footer>
 
-  <link rel="stylesheet" href="styles.css" />
-  <script src="script.js"></script>
+  <!-- Books page JavaScript -->
+  <script src="{{ url_for('static', filename='books.js') }}"></script>
 </body>
 </html>

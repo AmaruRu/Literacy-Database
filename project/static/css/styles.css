@@ -1,4 +1,4 @@
-body {
+html, body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
@@ -12,17 +12,17 @@ body {
     padding: 20px;
     text-align: center;
   }
-  
+
   header h1 {
     margin: 0;
     font-size: 2.5em;
   }
-  
+
   .tagline {
     font-style: italic;
     margin-top: 5px;
   }
-  
+
   nav ul {
     list-style-type: none;
     margin: 10px 0 0;
@@ -86,9 +86,11 @@ body {
     background-color: #ffffff;
     text-align: center;
   }
+
   #map {
-    height: 600px;
+    height: 700px;
     width: 100%;
+    position: relative;
   }
 
   /* Map view toggle control styles */
@@ -137,12 +139,91 @@ body {
     background-color: #3a2366;
   }
 
+  /* Zoom Slider Control */
+  .zoom-slider-control {
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    margin: 10px;
+    padding: 10px;
+  }
+
+  .zoom-slider-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .zoom-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #4b2e83;
+    margin-bottom: 4px;
+  }
+
+  .zoom-slider {
+    appearance: slider-vertical;
+    -webkit-appearance: slider-vertical;
+    width: 8px;
+    height: 120px;
+    background: linear-gradient(to top, #e0e0e0, #e0e0e0);
+    border-radius: 4px;
+    outline: none;
+    writing-mode: bt-lr; /* IE */
+  }
+
+  .zoom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #4b2e83;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .zoom-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #4b2e83;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .zoom-slider::-webkit-slider-thumb:hover {
+    background: #3a2366;
+    transform: scale(1.1);
+  }
+
+  .zoom-slider::-moz-range-thumb:hover {
+    background: #3a2366;
+    transform: scale(1.1);
+  }
+
+  .zoom-levels {
+    display: flex;
+    flex-direction: column;
+    gap: 90px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #666;
+    margin-top: -120px;
+    pointer-events: none;
+  }
+
+  .zoom-levels span:first-child {
+    margin-bottom: auto;
+  }
+
   footer {
     background-color: #4b2e83;
     color: white;
     text-align: center;
     padding: 10px;
-    position: relative;
-    bottom: 0;
     width: 100%;
   }

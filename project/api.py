@@ -3,8 +3,8 @@ API endpoints for Mississippi Literacy Database
 """
 
 from flask import Blueprint, jsonify, request
-from sqlalchemy import func
-from .models import Districts, Schools, Subgroups, PerformanceData, TeacherQuality, NAEPAssessments
+from sqlalchemy import func, or_
+from .models import Districts, Schools, Subgroups, PerformanceData, TeacherQuality, NAEPAssessments, Books
 from . import db
 
 # Create API blueprint
@@ -621,18 +621,220 @@ def get_county_districts_schools(county_name):
             'error': str(e)
         }), 500
 
+@api_bp.route('/books', methods=['GET'])
+def get_books():
+    """Get book recommendations with filtering options"""
+    try:
+        # Query parameters
+        grade_level = request.args.get('grade_level', type=str)
+        literature_type = request.args.get('literature_type', type=str)
+        lexile_min = request.args.get('lexile_min', type=str)
+        lexile_max = request.args.get('lexile_max', type=str)
+        author = request.args.get('author', type=str)
+        search = request.args.get('search', type=str)
+        limit = request.args.get('limit', default=50, type=int)
+        offset = request.args.get('offset', default=0, type=int)
+
+        # Build query
+        query = Books.query
+
+        # Apply filters
+        if grade_level:
+            query = query.filter(Books.Grade_Level == grade_level)
+
+        if literature_type:
+            query = query.filter(Books.Literature_Type == literature_type)
+
+        if author:
+            query = query.filter(Books.Author.ilike(f'%{author}%'))
+
+        if search:
+            query = query.filter(or_(
+                Books.Title.ilike(f'%{search}%'),
+                Books.Author.ilike(f'%{search}%')
+            ))
+
+        # Lexile filtering (handle numeric and special values like "BR")
+        if lexile_min or lexile_max:
+            # For numeric Lexile values, filter appropriately
+            # Note: "BR" (Beginning Reader) is typically below 0
+            if lexile_min:
+                try:
+                    min_val = int(lexile_min)
+                    query = query.filter(
+                        or_(
+                            Books.Lexile.cast(db.Integer) >= min_val,
+                            Books.Lexile == 'BR'
+                        )
+                    )
+                except ValueError:
+                    pass
+
+            if lexile_max:
+                try:
+                    max_val = int(lexile_max)
+                    query = query.filter(
+                        or_(
+                            Books.Lexile.cast(db.Integer) <= max_val,
+                            Books.Lexile == 'BR'
+                        )
+                    )
+                except ValueError:
+                    pass
+
+        # Get total count before pagination
+        total_count = query.count()
+
+        # Apply pagination
+        books = query.order_by(Books.Grade_Level, Books.Title).limit(limit).offset(offset).all()
+
+        result = []
+        for book in books:
+            result.append({
+                'book_id': book.Book_ID,
+                'title': book.Title,
+                'author': book.Author,
+                'grade_level': book.Grade_Level,
+                'lexile': book.Lexile,
+                'literature_type': book.Literature_Type,
+                'cover_url': book.Cover_URL
+            })
+
+        return jsonify({
+            'success': True,
+            'data': result,
+            'count': len(result),
+            'total': total_count,
+            'filters_applied': {
+                'grade_level': grade_level,
+                'literature_type': literature_type,
+                'lexile_min': lexile_min,
+                'lexile_max': lexile_max,
+                'author': author,
+                'search': search,
+                'limit': limit,
+                'offset': offset
+            }
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@api_bp.route('/books/<int:book_id>', methods=['GET'])
+def get_book_detail(book_id):
+    """Get detailed information for a specific book"""
+    try:
+        book = Books.query.get_or_404(book_id)
+
+        result = {
+            'book_id': book.Book_ID,
+            'title': book.Title,
+            'author': book.Author,
+            'grade_level': book.Grade_Level,
+            'lexile': book.Lexile,
+            'literature_type': book.Literature_Type,
+            'cover_url': book.Cover_URL,
+            'created_at': book.Created_At.isoformat() if book.Created_At else None
+        }
+
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@api_bp.route('/books/grade-levels', methods=['GET'])
+def get_grade_levels():
+    """Get all available grade levels for books"""
+    try:
+        grade_levels = db.session.query(
+            Books.Grade_Level,
+            func.count(Books.Book_ID).label('book_count')
+        ).group_by(Books.Grade_Level).order_by(
+            func.field(Books.Grade_Level,
+                      'Kindergarten', '1st Grade', '2nd Grade', '3rd Grade',
+                      '4th Grade', '5th Grade', '6th Grade', '7th Grade',
+                      '8th Grade', '9th Grade', '10th Grade', '11th Grade', '12th Grade')
+        ).all()
+
+        result = []
+        for grade_level, count in grade_levels:
+            result.append({
+                'grade_level': grade_level,
+                'book_count': count
+            })
+
+        return jsonify({
+            'success': True,
+            'data': result,
+            'count': len(result)
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@api_bp.route('/books/authors', methods=['GET'])
+def get_authors():
+    """Get all authors with book counts"""
+    try:
+        limit = request.args.get('limit', default=50, type=int)
+
+        authors = db.session.query(
+            Books.Author,
+            func.count(Books.Book_ID).label('book_count')
+        ).group_by(Books.Author).order_by(
+            func.count(Books.Book_ID).desc(),
+            Books.Author
+        ).limit(limit).all()
+
+        result = []
+        for author, count in authors:
+            result.append({
+                'author': author,
+                'book_count': count
+            })
+
+        return jsonify({
+            'success': True,
+            'data': result,
+            'count': len(result)
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 @api_bp.route('/health', methods=['GET'])
 def health_check():
     """API health check endpoint"""
     try:
         # Simple database connectivity check
         district_count = Districts.query.count()
+        book_count = Books.query.count()
 
         return jsonify({
             'success': True,
             'status': 'healthy',
             'database': 'connected',
-            'district_count': district_count
+            'district_count': district_count,
+            'book_count': book_count
         })
 
     except Exception as e:

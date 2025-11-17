@@ -153,42 +153,59 @@ class TeacherQuality(db.Model):
 
 class NAEPAssessments(db.Model):
     __tablename__ = 'NAEP_Assessments'
-    
+
     NAEP_ID = db.Column(db.Integer, primary_key=True)
     School_Year = db.Column(db.Integer, nullable=False)
     District_ID = db.Column(db.Integer, db.ForeignKey('Districts.District_ID'), nullable=True)
     School_ID = db.Column(db.Integer, db.ForeignKey('Schools.School_ID'), nullable=True)
     Subgroup_ID = db.Column(db.Integer, db.ForeignKey('Subgroups.Subgroup_ID'), nullable=False)
-    
+
     # 4th Grade Math
     Grade_4_Math_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_4_Math_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_4_Math_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_4_Math_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
-    
+
     # 4th Grade Reading
     Grade_4_Reading_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_4_Reading_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_4_Reading_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_4_Reading_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
-    
+
     # 8th Grade Math
     Grade_8_Math_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_8_Math_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_8_Math_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_8_Math_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
-    
+
     # 8th Grade Reading
     Grade_8_Reading_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_8_Reading_Basic = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_8_Reading_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
     Grade_8_Reading_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
-    
+
     Created_At = db.Column(db.DateTime, default=datetime.utcnow)
     Updated_At = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Unique constraint
     __table_args__ = (db.UniqueConstraint('School_Year', 'District_ID', 'School_ID', 'Subgroup_ID', name='unique_naep_record'),)
-    
+
     def __repr__(self):
         return f'<NAEPAssessment {self.School_Year} - {self.subgroup.Subgroup_Name if self.subgroup else "Unknown"}>'
+
+
+class Books(db.Model):
+    __tablename__ = 'Books'
+
+    Book_ID = db.Column(db.Integer, primary_key=True)
+    Title = db.Column(db.String(500), nullable=False)
+    Author = db.Column(db.String(255), nullable=False)
+    Grade_Level = db.Column(db.String(50), nullable=False)
+    Lexile = db.Column(db.String(20), nullable=True)
+    Literature_Type = db.Column(db.Enum('Fiction', 'Nonfiction', name='literature_type'), nullable=False)
+    Cover_URL = db.Column(db.String(1000), nullable=True)
+    Created_At = db.Column(db.DateTime, default=datetime.utcnow)
+    Updated_At = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Book {self.Title} by {self.Author}>'
