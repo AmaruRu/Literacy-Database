@@ -1,262 +1,482 @@
-# 📖 Read Mississippi: Literacy Database
+# 📖 Mississippi Literacy Database
 
-A comprehensive Flask-based web application that analyzes literacy rates across Mississippi by school district, providing interactive dashboards and data visualizations to support educational decision-making and community awareness.
+> **Transform literacy data into actionable insights for Mississippi's educational future**
 
-## 🎯 Purpose
+A comprehensive web application that analyzes literacy performance across Mississippi's school districts, providing interactive dashboards, data visualizations, and analytics to support educators, policymakers, and communities in improving educational outcomes.
 
-**Read Mississippi** transforms raw literacy statistics from the Mississippi Department of Education into accessible, interactive visualizations. The platform serves educators, policy makers, researchers, and citizens with data-driven insights to address educational challenges and track progress toward literacy improvements.
+## 🎯 Overview
 
-## ✨ Current Features
+The **Mississippi Literacy Database** provides an intuitive, data-driven platform for understanding educational performance across the state. With interactive charts, district rankings, and demographic analysis, users can identify trends, track progress, and make informed decisions to support literacy improvement efforts.
 
-- **📊 Interactive Dashboard**: Real-time literacy analytics with charts and rankings
-- **🏆 District Rankings**: Performance comparisons across 147 Mississippi school districts
-- **👥 Demographic Analysis**: Performance breakdowns by race, gender, and special populations
-- **📈 Performance Levels**: 5-level proficiency distribution visualizations
-- **🔍 Filtering & Search**: District-specific data filtering capabilities
-- **📱 Responsive Design**: Mobile-friendly interface for accessibility
+### ✨ Key Features
+
+- **📊 Interactive Dashboard** - Real-time analytics with dynamic charts and visualizations
+- **🏆 District Rankings** - Performance comparisons across 150 Mississippi school districts  
+- **👥 Demographic Analysis** - Performance breakdowns by race, gender, economic status, and special populations
+- **📈 Performance Metrics** - Advanced analytics including achievement gaps and trend analysis
+- **🔍 Smart Filtering** - District-specific data exploration and comparison tools
+- **📱 Responsive Design** - Mobile-friendly interface accessible on any device
+- **🔌 REST API** - Comprehensive data access for developers and researchers
+
+## 🚀 Quick Start Guide
+
+### Option 1: Docker (Recommended)
+
+**Prerequisites**: [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed
+
+```bash
+# 1. Clone the repository
+git clone <your-repo-url>
+cd Literacy-Database
+
+# 2. Start the application with Docker
+docker compose up -d
+
+# 3. Import the literacy data
+docker compose --profile setup run db-setup
+
+# 4. Access your application
+open http://localhost:5001
+```
+
+**That's it!** Your application is running with a complete MySQL database containing 18,630 literacy records.
+
+### Option 2: Local Development Setup
+
+**Prerequisites**: Python 3.9+, MySQL 8.0+
+
+```bash
+# 1. Clone and setup environment
+git clone <your-repo-url>
+cd Literacy-Database
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Configure database connection
+cp .env.example .env
+# Edit .env with your MySQL credentials
+
+# 4. Import data and run
+python import_data.py
+python website.py
+
+# 5. Open dashboard
+open http://localhost:5000
+```
+
+## 📊 Using the Dashboard
+
+### 🏠 Homepage Features
+- **Quick Statistics** - State-level literacy overview
+- **Navigation** - Easy access to all application features
+
+### 📈 Interactive Dashboard
+Access comprehensive analytics at `/dashboard.html`:
+
+#### **Key Statistics Panel**
+- **School Districts**: Total count of districts in the database
+- **Schools**: Number of individual schools tracked
+- **State Average Proficiency**: Overall English proficiency percentage
+- **Total Records**: Student performance data points
+
+#### **District Rankings Table**
+- **Top Performers**: Districts ranked by average English proficiency
+- **Performance Metrics**: Proficiency percentages and student counts
+- **Sortable Data**: Click headers to reorder by different criteria
+
+#### **Subgroup Performance Charts**
+- **Interactive Filtering**: Select specific districts or view statewide data
+- **Demographic Breakdown**: Performance by:
+  - **All Students**: Overall district performance
+  - **Gender**: Male vs Female performance comparison
+  - **Race/Ethnicity**: Performance across racial groups
+  - **Economic Status**: Economically disadvantaged vs non-disadvantaged
+  - **English Learners**: EL student performance tracking
+  - **Special Education**: SPED student outcomes
+  - **Special Populations**: Other specialized student groups
+
+#### **Performance Level Distribution**
+- **5-Level Proficiency Scale**: 
+  - Level 1 (Below Basic) - Red
+  - Level 2 (Approaching Basic) - Orange  
+  - Level 3 (Basic) - Yellow
+  - Level 4 (Proficient) - Green
+  - Level 5 (Advanced) - Blue
+- **Interactive Pie Chart**: Hover for detailed percentages
+
+#### **Advanced Performance Metrics**
+- **Achievement Gap**: Difference between highest and lowest performing subgroups
+- **Districts Above Average**: Count and percentage of high-performing districts
+- **Proficiency Trends**: Year-over-year improvement tracking
+- **Impact Indicators**: Factors affecting student outcomes
+
+### 📱 Mobile Experience
+- **Responsive Design**: Full functionality on phones and tablets
+- **Touch-Friendly**: Optimized for mobile interaction
+- **Fast Loading**: Efficient data loading and caching
+
+## 🔌 API Reference
+
+### Authentication
+Currently open access. Future versions will include role-based authentication.
+
+### Base URL
+- **Local Development**: `http://localhost:5000/api`
+- **Docker Setup**: `http://localhost:5001/api`
+
+### Core Endpoints
+
+#### **Health Check**
+```http
+GET /api/health
+```
+**Response**: System status and database connectivity
+```json
+{
+  "success": true,
+  "status": "healthy",
+  "database": "connected",
+  "counts": {
+    "districts": 150,
+    "schools": 1003
+  }
+}
+```
+
+#### **Districts**
+```http
+GET /api/districts
+```
+**Response**: List of all school districts with basic information
+
+#### **Schools**  
+```http
+GET /api/schools?district_id={id}
+```
+**Parameters**:
+- `district_id` (optional): Filter schools by district
+
+#### **Performance Data**
+```http
+GET /api/performance?district_id={id}&group_id={group}&limit={num}
+```
+**Parameters**:
+- `district_id` (optional): Filter by district
+- `group_id` (optional): Filter by demographic group
+- `limit` (optional): Limit number of results
+
+### Analytics Endpoints
+
+#### **District Rankings**
+```http
+GET /api/analytics/district-rankings
+```
+**Response**: Top 20 districts ranked by English proficiency
+
+#### **Subgroup Performance**
+```http
+GET /api/analytics/subgroup-performance?district_id={id}
+```
+**Parameters**:
+- `district_id` (optional): Focus on specific district
+**Response**: Performance comparison across all demographic groups
+
+#### **Performance Metrics**
+```http
+GET /api/analytics/performance-metrics
+```
+**Response**: Advanced analytics including achievement gaps and trends
+
+### Example Usage
+
+```bash
+# Get top performing districts
+curl http://localhost:5001/api/analytics/district-rankings
+
+# Get demographic performance for a specific district
+curl http://localhost:5001/api/analytics/subgroup-performance?district_id=1
+
+# Check system health
+curl http://localhost:5001/api/health
+```
 
 ## 🗄️ Database Schema
 
-The application uses a normalized MySQL database with comprehensive literacy data:
-
 ### Core Tables
-- **Districts** (147 records): School district information and metadata
-- **Schools** (853 records): Individual schools linked to districts
-- **Subgroups** (29 categories): Demographic and special population classifications
-- **Performance_Data** (19,377 records): Detailed literacy metrics with 5-level proficiency scales
-- **Teacher_Quality**: Teacher experience and certification metrics by poverty level
-- **NAEP_Assessments**: National assessment data for 4th and 8th grade reading/math
+- **📍 Locations** (109 records): Geographic data for districts
+- **🏫 Districts** (150 records): School district information
+- **🎓 Schools** (1,003 records): Individual schools with location links
+- **👥 DemographicGroups** (71 records): Student subgroup classifications
+- **📅 AcademicYears** (1 record): School year tracking
+- **📊 PerformanceRecords** (18,630 records): Core literacy metrics
+- **👩‍🏫 TeacherQuality** (150 records): Teacher experience and certification data
+- **📋 NAEPAssessments**: National assessment comparison data
 
 ### Key Metrics Tracked
-- English proficiency percentages and growth rates
-- Performance level distributions (Levels 1-5)
-- Chronic absenteeism rates
-- Teacher quality indicators
-- Student demographic breakdowns
+- **English Proficiency Percentages**: Primary literacy indicator
+- **Performance Level Distributions**: 5-level proficiency breakdowns
+- **Chronic Absenteeism Rates**: Attendance impact tracking
+- **Teacher Quality Indicators**: Experience and certification metrics
+- **Demographic Breakdowns**: Comprehensive subgroup analysis
 
 ## 🛠️ Technology Stack
 
-- **Backend**: Flask 3.1.2, SQLAlchemy ORM, Flask-Login
-- **Database**: MySQL with PyMySQL connector and cryptography support
-- **Frontend**: HTML5, CSS3, JavaScript ES6, Chart.js for visualizations
-- **API**: RESTful JSON API with comprehensive endpoints
-- **Authentication**: Flask-Login ready for user management
-- **Environment**: Python-dotenv for configuration management
+### Backend
+- **Flask 3.1.2**: Modern Python web framework
+- **SQLAlchemy ORM**: Database abstraction and management
+- **MySQL 8.0**: Production-grade database
+- **PyMySQL**: Database connectivity
+- **Python-dotenv**: Environment configuration
 
-## 📋 Prerequisites
+### Frontend
+- **HTML5/CSS3**: Modern web standards
+- **JavaScript ES6**: Interactive functionality
+- **Chart.js**: Dynamic data visualizations
+- **Responsive Design**: Mobile-first approach
 
-- Python 3.13+
-- MySQL Server
-- Virtual environment (recommended)
-
-## 🚀 Installation & Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd Literacy-Database
-   ```
-
-2. **Create and activate virtual environment**
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Set up MySQL database**
-   - Create a MySQL database named `literacy_db`
-   - Run the schema:
-   ```bash
-   mysql -u your_username -p literacy_db < create_tables_new.sql
-   ```
-
-5. **Configure environment variables**
-   Create a `.env` file in the project root:
-   ```
-   MYSQL_HOST=localhost
-   MYSQL_USER=your_mysql_username
-   MYSQL_PASSWORD=your_mysql_password
-   MYSQL_DB=literacy_db
-   ```
-
-6. **Import sample data (optional)**
-   If you have the literacy data file:
-   ```bash
-   python3 dev/import_data.py
-   ```
-
-7. **Run the application**
-   ```bash
-   python3 website.py
-   ```
-
-   The app will start on `http://127.0.0.1:5001` and automatically open in your browser.
+### Infrastructure
+- **Docker**: Containerized deployment
+- **Docker Compose**: Multi-service orchestration
+- **MySQL Container**: Isolated database environment
+- **Health Checks**: Automated service monitoring
 
 ## 📁 Project Structure
 
 ```
 Literacy-Database/
-├── 📁 project/              # Main Flask application
-│   ├── __init__.py          # Flask app factory and configuration
-│   ├── api.py               # RESTful API endpoints
+├── 🐳 docker-compose.yml        # Multi-container orchestration
+├── 🐳 Dockerfile               # Application container
+├── 🐳 init-db.sql             # Database initialization
+├── 📊 Mississippi_Literacy_Dataset.csv  # Source data
+├── 📝 requirements.txt         # Python dependencies
+├── 🐍 website.py              # Application entry point
+├── 📊 import_data.py          # Data import script
+│
+├── 📁 project/               # Main Flask application
+│   ├── __init__.py           # App factory & configuration
 │   ├── models.py            # SQLAlchemy database models
-│   ├── 📁 static/           # Static assets
-│   │   ├── 📁 css/
-│   │   │   └── styles.css   # Application styling
-│   │   └── dashboard.js     # Dashboard functionality
-│   └── 📁 templates/        # Jinja2 HTML templates
-│       ├── layout.html      # Base template
-│       ├── dashboard.html   # Interactive dashboard
-│       ├── map.html         # Literacy map (placeholder)
-│       ├── mission.html     # Mission page
-│       └── books.html       # Resources page
-├── 📁 dev/                  # Development tools
-│   ├── import_data.py       # Data import script
-│   ├── test_api.py          # API testing suite
-│   └── test_models.py       # Model testing suite
-├── website.py               # Application entry point
-├── create_tables_new.sql    # Current database schema
-├── literacy_data.sql        # Original data source (6MB)
-├── requirements.txt         # Python dependencies
-├── .env                     # Environment variables (create this)
-├── .gitignore              # Git ignore rules
-└── README.md               # This documentation
+│   ├── api.py              # REST API endpoints
+│   │
+│   ├── 📁 templates/        # Jinja2 HTML templates
+│   │   ├── layout.html      # Homepage template
+│   │   └── dashboard.html   # Interactive dashboard
+│   │
+│   └── 📁 static/          # Frontend assets
+│       ├── 📁 css/
+│       │   └── styles.css   # Application styling
+│       └── dashboard.js     # Dashboard functionality
+│
+└── 📁 dev/                 # Development tools (optional)
+    ├── test_api.py         # API testing suite
+    └── test_models.py      # Model testing
 ```
 
-## 🔧 Development Status
+## 🔧 Configuration
 
-### ✅ Completed Features
-- **🗄️ Database**: Normalized schema with 19,377+ literacy records from 147 districts
-- **🔌 API**: Comprehensive RESTful endpoints for data access and analytics
-- **📊 Dashboard**: Interactive visualizations with Chart.js integration
-- **🏗️ Backend**: Complete Flask application with SQLAlchemy models
-- **🎨 Frontend**: Responsive design with dynamic data loading
-- **📈 Analytics**: District rankings, subgroup comparisons, performance distributions
-- **🔍 Filtering**: District-specific data filtering and search capabilities
-- **⚙️ Infrastructure**: Environment configuration, error handling, logging
+### Environment Variables
 
-### 🚧 Future Enhancements
-- **🗺️ Interactive Map**: Mississippi district map with performance overlays
-- **📱 Mobile App**: React Native or PWA for mobile access
-- **👥 User Authentication**: Role-based access for educators and administrators  
-- **📊 Advanced Analytics**: Trend analysis, predictive modeling, benchmarking
-- **📄 Reporting**: PDF report generation for districts and schools
-- **🔔 Alerts**: Performance threshold notifications and updates
+Create a `.env` file for local development:
 
-### 📊 Current Data Coverage
-- **147 School Districts** across Mississippi
-- **853 Individual Schools** with detailed metrics
-- **29 Demographic Subgroups** for comprehensive analysis
-- **2024 School Year** data from Mississippi Department of Education
-- **Performance Levels 1-5** with student count and percentage breakdowns
+```env
+# Database Configuration
+MYSQL_HOST=localhost
+MYSQL_USER=your_username
+MYSQL_PASSWORD=your_password
+MYSQL_DB=MS_DBMS
 
-## 🔌 API Endpoints
-
-The application provides a comprehensive REST API for accessing literacy data:
-
-### Core Endpoints
-- `GET /api/health` - System health check and database connectivity
-- `GET /api/districts` - List all 147 school districts
-- `GET /api/districts/{id}` - Detailed district information with schools
-- `GET /api/schools` - All schools with optional district filtering
-- `GET /api/subgroups` - Demographic categories and classifications
-- `GET /api/performance` - Performance data with flexible filtering
-
-### Analytics Endpoints  
-- `GET /api/analytics/district-rankings` - Top performing districts by English proficiency
-- `GET /api/analytics/subgroup-performance` - Performance comparison across demographics
-
-### Usage Examples
-```bash
-# Get top performing districts
-curl http://localhost:5001/api/analytics/district-rankings
-
-# Get performance data for a specific district
-curl http://localhost:5001/api/performance?district_id=1
-
-# Get demographic performance statewide
-curl http://localhost:5001/api/analytics/subgroup-performance
+# Application Settings
+FLASK_ENV=development
+FLASK_APP=website.py
 ```
 
-## 🐛 Troubleshooting
+### Docker Configuration
+
+The Docker setup includes:
+- **MySQL 8.0 Container**: Isolated database with persistent storage
+- **Flask Web Container**: Application server with auto-reload
+- **Data Import Service**: One-time data population
+- **Health Checks**: Automated service monitoring
+- **Volume Persistence**: Data preserved across restarts
+
+## 🔍 Troubleshooting
 
 ### Common Issues
 
-**MySQL Connection Errors**
-- Ensure MySQL server is running: `brew services start mysql` (macOS)
-- Verify credentials in `.env` file match your MySQL setup
-- Check that `literacy_db` database exists: `SHOW DATABASES;`
-- Install cryptography: `pip install cryptography`
+#### **Docker Port Conflicts**
+```bash
+# If ports 5000 or 3306 are in use:
+docker compose down
+lsof -ti:5000 | xargs kill  # Kill conflicting process
+docker compose up -d
+```
 
-**Import/Dependency Errors**
-- Activate virtual environment: `source .venv/bin/activate`
-- Install all dependencies: `pip install -r requirements.txt`
-- Python version compatibility: Requires Python 3.13+
+#### **Database Connection Issues**
+```bash
+# Check MySQL container health:
+docker compose ps
+docker compose logs mysql
 
-**Password with Special Characters**
-- The app handles URL encoding automatically with `quote_plus()`
-- No need to manually encode passwords in `.env`
-- Use quotes around passwords with special characters
+# Reset database:
+docker compose down -v  # Removes volumes
+docker compose up -d
+docker compose --profile setup run db-setup
+```
 
-**Port Conflicts**
-- Default port changed to 5001 to avoid AirPlay conflicts on macOS
-- Modify `website.py` if you need a different port
+#### **Application Not Loading**
+```bash
+# Check web container logs:
+docker compose logs web
 
-**Data Loading Issues**
-- Ensure `literacy_data.sql` is in the root directory for import
-- Check database permissions for the MySQL user
-- Verify sufficient disk space for the 6MB dataset
+# Restart services:
+docker compose restart
+```
+
+#### **Data Import Failures**
+```bash
+# Manual data import:
+docker compose exec web python import_data.py
+
+# Check import logs:
+docker compose logs db-setup
+```
+
+### Performance Optimization
+
+#### **Database Queries**
+- The application uses optimized SQLAlchemy queries with joins
+- Indexes are automatically created for foreign keys
+- Large datasets use pagination and limits
+
+#### **Frontend Performance**
+- Chart.js provides efficient rendering of large datasets
+- API calls are cached where appropriate
+- Mobile-responsive design minimizes data transfer
+
+## 👥 Use Cases
+
+### **For Educators**
+- **District Comparison**: Compare your district's performance against state averages
+- **Demographic Analysis**: Identify achievement gaps within your student populations
+- **Progress Tracking**: Monitor improvement trends over time
+- **Resource Planning**: Use data to inform teaching strategies and resource allocation
+
+### **For Policymakers**
+- **State Overview**: Comprehensive view of educational performance across Mississippi
+- **Equity Analysis**: Identify districts and populations needing additional support
+- **Funding Decisions**: Data-driven insights for budget and program allocation
+- **Accountability**: Track progress toward literacy improvement goals
+
+### **For Researchers**
+- **Data Export**: Access clean, normalized literacy data via API
+- **Statistical Analysis**: Performance metrics and demographic breakdowns
+- **Longitudinal Studies**: Track educational outcomes over time
+- **Comparative Research**: Mississippi data in context with national standards
+
+### **For Communities**
+- **School Selection**: Compare district and school performance metrics
+- **Advocacy**: Use data to support education initiatives and funding
+- **Awareness**: Understand local educational challenges and successes
+- **Engagement**: Participate in data-driven discussions about education
+
+## 🚀 Future Enhancements
+
+### **Planned Features**
+- **🗺️ Interactive Maps**: Geographic visualization of district performance
+- **📱 Mobile App**: Native mobile application for enhanced accessibility
+- **👥 User Authentication**: Role-based access for different user types
+- **📊 Advanced Analytics**: Predictive modeling and trend analysis
+- **📄 Report Generation**: Automated PDF reports for districts and schools
+- **🔔 Alert System**: Notifications for performance changes and updates
+
+### **Data Expansions**
+- **Historical Data**: Multi-year trend analysis
+- **Additional Metrics**: Math proficiency, graduation rates, college readiness
+- **School-Level Detail**: Individual school performance breakdowns
+- **National Comparisons**: NAEP and other national benchmark integration
+
+## 📊 Data Sources & Quality
+
+### **Primary Source**
+- **Mississippi Department of Education** (2024 School Year)
+- **Coverage**: All public school districts in Mississippi
+- **Update Frequency**: Annual updates as new data becomes available
+
+### **Data Quality**
+- **Validation**: Comprehensive data cleaning and normalization
+- **Completeness**: 18,630 performance records across 150 districts
+- **Accuracy**: Cross-referenced with official MDE publications
+- **Consistency**: Standardized demographic categories and performance scales
+
+### **Data Processing**
+1. **Raw Data Import**: CSV files from MDE databases
+2. **Cleaning & Validation**: Remove duplicates, validate ranges
+3. **Normalization**: Convert to relational database schema
+4. **Quality Assurance**: Automated tests for data integrity
+5. **Index Optimization**: Performance tuning for query efficiency
 
 ## 🤝 Contributing
 
-This project aims to improve literacy awareness in Mississippi. We welcome contributions for:
+We welcome contributions to improve literacy education in Mississippi!
 
-### Priority Areas
-- **🗺️ Interactive Maps**: Mississippi district boundary visualizations
-- **📊 Advanced Analytics**: Trend analysis, predictive modeling, statistical insights  
-- **📱 Mobile Experience**: Progressive Web App (PWA) capabilities
-- **🎨 UI/UX Improvements**: Accessibility, design enhancements, user experience
-- **⚡ Performance**: Database query optimization, caching strategies
-- **📋 Testing**: Unit tests, integration tests, API documentation
+### **Priority Areas**
+- **🎨 UI/UX Improvements**: Accessibility, design enhancements
+- **📊 Data Visualizations**: Additional chart types and analytics
+- **⚡ Performance**: Database optimization and caching
+- **📱 Mobile Experience**: Progressive Web App features
+- **🧪 Testing**: Unit tests and integration testing
+- **📚 Documentation**: User guides and API documentation
 
-### Development Setup
-1. Fork the repository and create a feature branch
-2. Follow the installation instructions above
-3. Use the development tools in the `/dev` folder for testing
-4. Run tests: `python3 dev/test_api.py` and `python3 dev/test_models.py`
-5. Submit a pull request with clear description of changes
+### **Development Workflow**
+1. **Fork** the repository and create a feature branch
+2. **Setup** the development environment using Docker or local setup
+3. **Test** your changes using the provided test suites
+4. **Document** any new features or API changes
+5. **Submit** a pull request with clear description of changes
 
-### Code Standards
-- Follow PEP 8 for Python code style
+### **Code Standards**
+- Follow **PEP 8** for Python code style
 - Use meaningful variable and function names
-- Include docstrings for new functions and classes
-- Test API endpoints with the provided test suite
-
-## 📊 Data Sources
-
-- **Primary Data**: Mississippi Department of Education (2024 School Year)
-- **Coverage**: All public school districts in Mississippi
-- **Metrics**: English proficiency, performance levels, demographic breakdowns
-- **Quality**: Cleaned and normalized data with comprehensive validation
+- Include **docstrings** for new functions and classes
+- Write **unit tests** for new functionality
+- Update **documentation** for API changes
 
 ## 📄 License
 
-Educational project for literacy analysis and community awareness. Open source under MIT License.
+This project is open source under the **MIT License**. See LICENSE file for details.
 
-## 🎯 Impact Goals
+## 🎯 Impact & Mission
 
-This platform supports Mississippi's literacy improvement efforts by:
-- **Identifying Achievement Gaps**: Highlighting disparities across demographic groups
-- **Informing Policy Decisions**: Providing data-driven insights for educators and policymakers  
-- **Community Engagement**: Making literacy data accessible to parents and community members
-- **Progress Tracking**: Enabling districts to monitor and celebrate improvements
-- **Resource Allocation**: Supporting evidence-based funding and program decisions
+### **Our Mission**
+Empowering Mississippi communities with accessible, actionable literacy data to drive educational improvement and ensure every student has the opportunity to succeed.
+
+### **Impact Goals**
+- **🔍 Identify Achievement Gaps**: Highlight disparities for targeted intervention
+- **📈 Track Progress**: Monitor improvement efforts and celebrate successes  
+- **💡 Inform Decisions**: Provide data-driven insights for educators and policymakers
+- **🤝 Engage Communities**: Make education data accessible to all stakeholders
+- **💰 Optimize Resources**: Support evidence-based funding and program decisions
 
 ---
 
-*Built with 📚 for Mississippi's Future - Every Page Turned is a Step Toward Change*
+## 🆘 Support & Contact
+
+### **Getting Help**
+- **Documentation**: This README and inline code comments
+- **Issues**: Report bugs and feature requests via GitHub issues
+- **API Testing**: Use the provided test suites in `/dev` folder
+- **Community**: Join discussions about Mississippi education data
+
+### **Quick Links**
+- **Live Demo**: [Your deployed URL here]
+- **API Documentation**: `/api` endpoints documented above
+- **GitHub Repository**: [Your repo URL here]
+- **Mississippi Department of Education**: [Official MDE Data](https://www.mdek12.org)
+
+---
+
+*🏆 Built with passion for Mississippi's educational future - Every data point represents a student's potential* 
+
+**Version**: 2.0.0 | **Last Updated**: November 2025
