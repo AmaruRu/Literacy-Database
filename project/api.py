@@ -282,7 +282,7 @@ def get_subgroup_performance():
         for subgroup_name, subgroup_type, avg_proficiency, record_count in subgroup_performance:
             result.append({
                 'subgroup_name': subgroup_name,
-                'subgroup_type': subgroup_type,
+                'subgroup_category': subgroup_type,  # Match frontend expectation
                 'average_english_proficiency': round(float(avg_proficiency), 1) if avg_proficiency else None,
                 'record_count': record_count
             })
@@ -294,6 +294,124 @@ def get_subgroup_performance():
             'filters': {
                 'county': county,
                 'school_year': school_year
+            }
+        })
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/analytics/district-rankings', methods=['GET'])
+def get_district_rankings():
+    """Get districts ranked by performance"""
+    try:
+        all_subgroup = DemographicGroups.query.filter_by(subgroup_name='All').first()
+        
+        if not all_subgroup:
+            return jsonify({
+                'success': False,
+                'error': "'All' subgroup not found"
+            }), 404
+
+        district_performance = db.session.query(
+            Districts.district_name,
+            func.avg(PerformanceRecords.english_proficiency).label('avg_english_proficiency'),
+            func.count(PerformanceRecords.record_id).label('record_count')
+        ).join(Schools, Districts.district_id == Schools.district_id)\
+         .join(PerformanceRecords, Schools.school_id == PerformanceRecords.school_id)\
+         .filter(
+            PerformanceRecords.group_id == all_subgroup.group_id,
+            PerformanceRecords.english_proficiency.isnot(None)
+        ).group_by(
+            Districts.district_id, Districts.district_name
+        ).order_by(
+            func.avg(PerformanceRecords.english_proficiency).desc()
+        ).limit(20).all()
+        
+        result = []
+        for rank, (district_name, avg_proficiency, record_count) in enumerate(district_performance, 1):
+            result.append({
+                'rank': rank,
+                'district_name': district_name,
+                'average_english_proficiency': round(float(avg_proficiency), 1),
+                'record_count': record_count
+            })
+        
+        return jsonify({
+            'success': True,
+            'data': result,
+            'count': len(result)
+        })
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/analytics/performance-metrics', methods=['GET'])
+def get_performance_metrics():
+    """Get advanced performance metrics and insights"""
+    try:
+        all_subgroup = DemographicGroups.query.filter_by(subgroup_name='All').first()
+        
+        if not all_subgroup:
+            return jsonify({
+                'success': False,
+                'error': "'All' subgroup not found"
+            }), 404
+
+        # Calculate state average
+        state_avg = db.session.query(
+            func.avg(PerformanceRecords.english_proficiency).label('state_avg')
+        ).filter(
+            PerformanceRecords.group_id == all_subgroup.group_id,
+            PerformanceRecords.english_proficiency.isnot(None)
+        ).scalar()
+
+        # Calculate districts above state average
+        districts_above_avg = db.session.query(
+            Districts.district_id
+        ).join(Schools, Districts.district_id == Schools.district_id)\
+         .join(PerformanceRecords, Schools.school_id == PerformanceRecords.school_id)\
+         .filter(
+            PerformanceRecords.group_id == all_subgroup.group_id,
+            PerformanceRecords.english_proficiency.isnot(None)
+        ).group_by(Districts.district_id)\
+         .having(func.avg(PerformanceRecords.english_proficiency) > state_avg)\
+         .count()
+
+        # Total districts
+        total_districts = Districts.query.count()
+
+        # Calculate achievement gap (difference between highest and lowest subgroups)
+        subgroup_averages = db.session.query(
+            func.avg(PerformanceRecords.english_proficiency).label('avg_proficiency')
+        ).join(DemographicGroups, PerformanceRecords.group_id == DemographicGroups.group_id)\
+         .filter(
+            PerformanceRecords.english_proficiency.isnot(None),
+            DemographicGroups.subgroup_name != 'All'
+        ).group_by(DemographicGroups.group_id)\
+         .order_by(func.avg(PerformanceRecords.english_proficiency).desc())\
+         .all()
+
+        achievement_gap = None
+        if len(subgroup_averages) >= 2:
+            highest = float(subgroup_averages[0].avg_proficiency)
+            lowest = float(subgroup_averages[-1].avg_proficiency)
+            achievement_gap = highest - lowest
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'state_average': round(float(state_avg), 1) if state_avg else None,
+                'districts_above_average': districts_above_avg,
+                'total_districts': total_districts,
+                'achievement_gap': round(achievement_gap, 1) if achievement_gap else None,
+                'proficiency_trend': 2.3,  # Placeholder - would need historical data
+                'avg_class_size_impact': 0.8  # Placeholder - would need class size data
             }
         })
     

@@ -121,8 +121,11 @@ async function loadSubgroupPerformance(districtId = null) {
         const categories = {
             'All': [],
             'Gender': [],
-            'Race_Ethnicity': [],
-            'Special_Population': []
+            'Race': [],
+            'EconStatus': [],
+            'EL': [],
+            'SPED': [],
+            'SpecialPop': []
         };
 
         data.data.forEach(subgroup => {
@@ -329,14 +332,27 @@ function createSubgroupChart(categories) {
     const colors = {
         'All': '#2c5aa0',
         'Gender': '#28a745',
-        'Race_Ethnicity': '#dc3545',
-        'Special_Population': '#ffc107'
+        'Race': '#dc3545',
+        'EconStatus': '#ffc107',
+        'EL': '#17a2b8',
+        'SPED': '#6f42c1',
+        'SpecialPop': '#fd7e14'
+    };
+
+    const categoryLabels = {
+        'All': 'All Students',
+        'Gender': 'Gender',
+        'Race': 'Race/Ethnicity', 
+        'EconStatus': 'Economic Status',
+        'EL': 'English Learners',
+        'SPED': 'Special Education',
+        'SpecialPop': 'Special Populations'
     };
 
     Object.keys(categories).forEach(category => {
         if (categories[category].length > 0) {
             datasets.push({
-                label: category.replace('_', '/'),
+                label: categoryLabels[category] || category,
                 data: categories[category].map(item => item.proficiency),
                 backgroundColor: colors[category] + '80', // Add transparency
                 borderColor: colors[category],
