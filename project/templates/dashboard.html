@@ -196,12 +196,73 @@
             <th>District Name</th>
             <th>Avg English Proficiency</th>
             <th>Records</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody id="district-rankings">
           <!-- Rankings will be populated by JavaScript -->
         </tbody>
       </table>
+    </div>
+
+    <!-- School-Level Drill-Down -->
+    <div id="school-details-section" class="dashboard-section" style="display: none;">
+      <h2 class="section-title">🏫 <span id="selected-district-name">District</span> - School Performance</h2>
+      <p>Individual school performance within the selected district</p>
+      
+      <div class="school-filters">
+        <div class="filter-group">
+          <label for="grade-span-filter">Filter by Grade Span:</label>
+          <select id="grade-span-filter">
+            <option value="">All Grade Spans</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>&nbsp;</label>
+          <button id="back-to-districts" class="back-btn">← Back to Districts</button>
+        </div>
+      </div>
+      
+      <div class="school-performance-grid">
+        <div class="school-stats">
+          <div class="stat-card">
+            <div class="stat-number" id="district-schools-count">-</div>
+            <div class="stat-label">Schools in District</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="district-avg-proficiency">-</div>
+            <div class="stat-label">District Average</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="schools-above-district-avg">-</div>
+            <div class="stat-label">Schools Above District Avg</div>
+          </div>
+        </div>
+        
+        <div class="schools-table-container">
+          <table class="rankings-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>School Name</th>
+                <th>Grade Span</th>
+                <th>English Proficiency</th>
+                <th>Performance vs District</th>
+              </tr>
+            </thead>
+            <tbody id="school-rankings">
+              <!-- School rankings will be populated by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="school-chart-container">
+          <h3>School Performance Comparison</h3>
+          <div class="chart-container">
+            <canvas id="school-performance-chart"></canvas>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Subgroup Performance Comparison -->
@@ -211,10 +272,37 @@
       
       <div class="filters">
         <div class="filter-group">
+          <label for="county-filter">Filter by County:</label>
+          <select id="county-filter">
+            <option value="">All Counties</option>
+          </select>
+        </div>
+        <div class="filter-group">
           <label for="district-filter">Filter by District:</label>
           <select id="district-filter">
-            <option value="">All Districts (Statewide)</option>
+            <option value="">All Districts</option>
           </select>
+        </div>
+        <div class="filter-group">
+          <label for="school-type-filter">Filter by School Type:</label>
+          <select id="school-type-filter">
+            <option value="">All School Types</option>
+            <option value="School">Individual Schools</option>
+            <option value="District">District Aggregates</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="performance-filter">Performance Range:</label>
+          <select id="performance-filter">
+            <option value="">All Performance Levels</option>
+            <option value="high">Above State Average (47.6%+)</option>
+            <option value="medium">Near State Average (35-47.6%)</option>
+            <option value="low">Below Average (<35%)</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>&nbsp;</label>
+          <button id="clear-filters" class="clear-btn">Clear All Filters</button>
         </div>
       </div>
       

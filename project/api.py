@@ -340,7 +340,7 @@ def get_subgroup_performance():
 
 @api_bp.route('/analytics/district-rankings', methods=['GET'])
 def get_district_rankings():
-    """Get districts ranked by performance"""
+    """Get districts ranked by performance with filtering options"""
     try:
         all_subgroup = DemographicGroups.query.filter_by(subgroup_name='All').first()
         
@@ -350,26 +350,62 @@ def get_district_rankings():
                 'error': "'All' subgroup not found"
             }), 404
 
-        district_performance = db.session.query(
+        # Get filter parameters
+        county = request.args.get('county')
+        performance_range = request.args.get('performance_range')
+        limit = request.args.get('limit', default=20, type=int)
+
+        # Build query with filters
+        query = db.session.query(
+            Districts.district_id,
             Districts.district_name,
+            Locations.county,
             func.avg(PerformanceRecords.english_proficiency).label('avg_english_proficiency'),
             func.count(PerformanceRecords.record_id).label('record_count')
         ).join(Schools, Districts.district_id == Schools.district_id)\
          .join(PerformanceRecords, Schools.school_id == PerformanceRecords.school_id)\
+         .join(Locations, Districts.location_id == Locations.location_id)\
          .filter(
             PerformanceRecords.group_id == all_subgroup.group_id,
-            PerformanceRecords.english_proficiency.isnot(None)
-        ).group_by(
-            Districts.district_id, Districts.district_name
+            PerformanceRecords.english_proficiency.isnot(None),
+            Schools.school_number != 0  # Exclude state-level school
+        )
+
+        # Apply county filter
+        if county:
+            query = query.filter(Locations.county == county)
+
+        # Group and order
+        district_performance = query.group_by(
+            Districts.district_id, Districts.district_name, Locations.county
         ).order_by(
             func.avg(PerformanceRecords.english_proficiency).desc()
-        ).limit(20).all()
+        )
+
+        # Apply performance range filter after grouping
+        if performance_range:
+            if performance_range == 'high':
+                district_performance = district_performance.having(
+                    func.avg(PerformanceRecords.english_proficiency) >= 47.6
+                )
+            elif performance_range == 'medium':
+                district_performance = district_performance.having(
+                    func.avg(PerformanceRecords.english_proficiency).between(35, 47.5)
+                )
+            elif performance_range == 'low':
+                district_performance = district_performance.having(
+                    func.avg(PerformanceRecords.english_proficiency) < 35
+                )
+
+        district_performance = district_performance.limit(limit).all()
         
         result = []
-        for rank, (district_name, avg_proficiency, record_count) in enumerate(district_performance, 1):
+        for rank, (district_id, district_name, county, avg_proficiency, record_count) in enumerate(district_performance, 1):
             result.append({
                 'rank': rank,
+                'district_id': district_id,
                 'district_name': district_name,
+                'county': county,
                 'average_english_proficiency': round(float(avg_proficiency), 1),
                 'record_count': record_count
             })
@@ -377,7 +413,12 @@ def get_district_rankings():
         return jsonify({
             'success': True,
             'data': result,
-            'count': len(result)
+            'count': len(result),
+            'filters': {
+                'county': county,
+                'performance_range': performance_range,
+                'limit': limit
+            }
         })
     
     except Exception as e:
@@ -485,6 +526,156 @@ def get_performance_metrics():
                 'proficiency_trend': 2.3,  # Placeholder - would need historical data
                 'avg_class_size_impact': 0.8  # Placeholder - would need class size data
             }
+        })
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/analytics/school-performance', methods=['GET'])
+def get_school_performance():
+    """Get school performance data within a district"""
+    try:
+        district_id = request.args.get('district_id', type=int)
+        grade_span = request.args.get('grade_span')
+        
+        if not district_id:
+            return jsonify({
+                'success': False,
+                'error': 'district_id parameter is required'
+            }), 400
+
+        all_subgroup = DemographicGroups.query.filter_by(subgroup_name='All').first()
+        if not all_subgroup:
+            return jsonify({
+                'success': False,
+                'error': "'All' subgroup not found"
+            }), 404
+
+        # Get district information
+        district = Districts.query.get(district_id)
+        if not district:
+            return jsonify({
+                'success': False,
+                'error': 'District not found'
+            }), 404
+
+        # Build school performance query
+        query = db.session.query(
+            Schools.school_id,
+            Schools.school_name,
+            Schools.grade_span,
+            Schools.school_type,
+            func.avg(PerformanceRecords.english_proficiency).label('avg_english_proficiency'),
+            func.count(PerformanceRecords.record_id).label('record_count')
+        ).join(PerformanceRecords, Schools.school_id == PerformanceRecords.school_id)\
+         .filter(
+            Schools.district_id == district_id,
+            Schools.school_number != 0,  # Exclude district-level aggregates
+            PerformanceRecords.group_id == all_subgroup.group_id,
+            PerformanceRecords.english_proficiency.isnot(None)
+        )
+
+        # Apply grade span filter if provided
+        if grade_span:
+            query = query.filter(Schools.grade_span == grade_span)
+
+        school_performance = query.group_by(
+            Schools.school_id, Schools.school_name, Schools.grade_span, Schools.school_type
+        ).order_by(
+            func.avg(PerformanceRecords.english_proficiency).desc()
+        ).all()
+
+        # Calculate district average
+        district_avg_query = db.session.query(
+            func.avg(PerformanceRecords.english_proficiency)
+        ).join(Schools, PerformanceRecords.school_id == Schools.school_id)\
+         .filter(
+            Schools.district_id == district_id,
+            Schools.school_number != 0,
+            PerformanceRecords.group_id == all_subgroup.group_id,
+            PerformanceRecords.english_proficiency.isnot(None)
+        ).scalar()
+
+        district_average = round(float(district_avg_query), 1) if district_avg_query else 0
+
+        # Prepare results
+        result = []
+        schools_above_avg = 0
+        
+        for rank, (school_id, school_name, grade_span, school_type, avg_proficiency, record_count) in enumerate(school_performance, 1):
+            proficiency = round(float(avg_proficiency), 1)
+            vs_district = proficiency - district_average
+            
+            if proficiency > district_average:
+                schools_above_avg += 1
+                vs_district_indicator = 'above'
+            elif proficiency == district_average:
+                vs_district_indicator = 'equal'
+            else:
+                vs_district_indicator = 'below'
+
+            result.append({
+                'rank': rank,
+                'school_id': school_id,
+                'school_name': school_name,
+                'grade_span': grade_span or 'Not specified',
+                'school_type': school_type,
+                'average_english_proficiency': proficiency,
+                'record_count': record_count,
+                'vs_district_avg': round(vs_district, 1),
+                'vs_district_indicator': vs_district_indicator
+            })
+
+        # Get available grade spans for filtering
+        grade_spans = db.session.query(Schools.grade_span)\
+            .filter(Schools.district_id == district_id, Schools.school_number != 0, Schools.grade_span.isnot(None))\
+            .distinct().all()
+        
+        available_grade_spans = [span[0] for span in grade_spans if span[0]]
+
+        return jsonify({
+            'success': True,
+            'data': result,
+            'count': len(result),
+            'district_info': {
+                'district_id': district.district_id,
+                'district_name': district.district_name,
+                'district_average': district_average,
+                'total_schools': len(result),
+                'schools_above_district_avg': schools_above_avg,
+                'available_grade_spans': available_grade_spans
+            },
+            'filters': {
+                'district_id': district_id,
+                'grade_span': grade_span
+            }
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/analytics/counties', methods=['GET'])
+def get_counties():
+    """Get list of available counties for filtering"""
+    try:
+        counties = db.session.query(Locations.county)\
+            .filter(Locations.county.isnot(None))\
+            .distinct()\
+            .order_by(Locations.county)\
+            .all()
+        
+        county_list = [county[0] for county in counties]
+        
+        return jsonify({
+            'success': True,
+            'data': county_list,
+            'count': len(county_list)
         })
     
     except Exception as e:

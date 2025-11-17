@@ -3,9 +3,18 @@
  * Fetches and displays literacy data from the Flask API
  */
 
-// Global variables for charts
+// Global variables for charts and state
 let subgroupChart = null;
 let performanceLevelsChart = null;
+let schoolPerformanceChart = null;
+let currentFilters = {
+    county: '',
+    district: '',
+    schoolType: '',
+    performanceRange: '',
+    gradeSpan: ''
+};
+let currentView = 'districts'; // 'districts' or 'schools'
 
 // API endpoints
 const API_BASE = '/api';
@@ -27,7 +36,7 @@ async function initializeDashboard() {
             loadPerformanceLevels(),
             loadPerformanceMetrics(),
             loadDataSummary(),
-            populateDistrictFilter()
+            populateFilters()
         ]);
         
         showLoading(false);
@@ -76,7 +85,18 @@ async function loadKeyStatistics() {
 
 async function loadDistrictRankings() {
     try {
-        const response = await fetch(`${API_BASE}/analytics/district-rankings`);
+        // Build URL with current filters
+        let url = `${API_BASE}/analytics/district-rankings`;
+        const params = new URLSearchParams();
+        
+        if (currentFilters.county) params.append('county', currentFilters.county);
+        if (currentFilters.performanceRange) params.append('performance_range', currentFilters.performanceRange);
+        
+        if (params.toString()) {
+            url += `?${params.toString()}`;
+        }
+
+        const response = await fetch(url);
         const data = await response.json();
 
         if (!data.success) {
@@ -90,9 +110,17 @@ async function loadDistrictRankings() {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="rank-number">${district.rank}</td>
-                <td>${district.district_name}</td>
+                <td>
+                    ${district.district_name}
+                    ${district.county ? `<div class="county-badge">${district.county} County</div>` : ''}
+                </td>
                 <td><strong>${district.average_english_proficiency}%</strong></td>
                 <td>${district.record_count}</td>
+                <td>
+                    <button class="action-btn" onclick="viewDistrictSchools(${district.district_id}, '${district.district_name}')">
+                        View Schools
+                    </button>
+                </td>
             `;
             rankingsTable.appendChild(row);
         });
@@ -284,19 +312,33 @@ async function loadDataSummary() {
     }
 }
 
-async function populateDistrictFilter() {
+async function populateFilters() {
     try {
-        const response = await fetch(`${API_BASE}/districts`);
-        const data = await response.json();
+        // Load all filter data in parallel
+        const [countiesResponse, districtsResponse] = await Promise.all([
+            fetch(`${API_BASE}/analytics/counties`),
+            fetch(`${API_BASE}/districts`)
+        ]);
 
-        if (!data.success) {
-            throw new Error(data.error);
+        const countiesData = await countiesResponse.json();
+        const districtsData = await districtsResponse.json();
+
+        if (!countiesData.success || !districtsData.success) {
+            throw new Error('Failed to load filter data');
         }
 
-        const select = document.getElementById('district-filter');
-        
-        // Sort districts alphabetically
-        const sortedDistricts = data.data.sort((a, b) => 
+        // Populate county filter
+        const countySelect = document.getElementById('county-filter');
+        countiesData.data.forEach(county => {
+            const option = document.createElement('option');
+            option.value = county;
+            option.textContent = county;
+            countySelect.appendChild(option);
+        });
+
+        // Populate district filter
+        const districtSelect = document.getElementById('district-filter');
+        const sortedDistricts = districtsData.data.sort((a, b) => 
             a.district_name.localeCompare(b.district_name)
         );
 
@@ -304,18 +346,104 @@ async function populateDistrictFilter() {
             const option = document.createElement('option');
             option.value = district.district_id;
             option.textContent = district.district_name;
-            select.appendChild(option);
+            districtSelect.appendChild(option);
         });
 
-        // Add event listener for filter changes
-        select.addEventListener('change', function() {
-            const districtId = this.value || null;
-            loadSubgroupPerformance(districtId);
-        });
+        // Add event listeners for all filters
+        setupFilterListeners();
 
     } catch (error) {
-        console.error('Error populating district filter:', error);
+        console.error('Error populating filters:', error);
         throw error;
+    }
+}
+
+function setupFilterListeners() {
+    // County filter
+    document.getElementById('county-filter').addEventListener('change', function() {
+        currentFilters.county = this.value;
+        refreshData();
+    });
+
+    // District filter
+    document.getElementById('district-filter').addEventListener('change', function() {
+        currentFilters.district = this.value;
+        const districtId = this.value || null;
+        loadSubgroupPerformance(districtId);
+    });
+
+    // School type filter
+    document.getElementById('school-type-filter').addEventListener('change', function() {
+        currentFilters.schoolType = this.value;
+        refreshData();
+    });
+
+    // Performance range filter
+    document.getElementById('performance-filter').addEventListener('change', function() {
+        currentFilters.performanceRange = this.value;
+        refreshData();
+    });
+
+    // Clear filters button
+    document.getElementById('clear-filters').addEventListener('click', function() {
+        clearAllFilters();
+    });
+
+    // School-level navigation
+    const backButton = document.getElementById('back-to-districts');
+    if (backButton) {
+        backButton.addEventListener('click', function() {
+            showDistrictsView();
+        });
+    }
+
+    // Grade span filter (for school view)
+    const gradeSpanSelect = document.getElementById('grade-span-filter');
+    if (gradeSpanSelect) {
+        gradeSpanSelect.addEventListener('change', function() {
+            currentFilters.gradeSpan = this.value;
+            if (currentView === 'schools') {
+                loadSchoolPerformance(currentFilters.district, currentFilters.gradeSpan);
+            }
+        });
+    }
+}
+
+function clearAllFilters() {
+    // Reset filter values
+    document.getElementById('county-filter').value = '';
+    document.getElementById('district-filter').value = '';
+    document.getElementById('school-type-filter').value = '';
+    document.getElementById('performance-filter').value = '';
+    
+    // Reset current filters object
+    currentFilters = {
+        county: '',
+        district: '',
+        schoolType: '',
+        performanceRange: '',
+        gradeSpan: ''
+    };
+
+    // Refresh data
+    refreshData();
+}
+
+async function refreshData() {
+    try {
+        showLoading(true);
+        
+        // Refresh district rankings and subgroup performance
+        await Promise.all([
+            loadDistrictRankings(),
+            loadSubgroupPerformance(currentFilters.district || null)
+        ]);
+        
+        showLoading(false);
+    } catch (error) {
+        console.error('Error refreshing data:', error);
+        showError('Failed to refresh data: ' + error.message);
+        showLoading(false);
     }
 }
 
@@ -491,4 +619,214 @@ function showDashboardSections() {
             section.style.display = 'block';
         }
     });
+}
+
+// School drill-down functionality
+async function viewDistrictSchools(districtId, districtName) {
+    try {
+        currentView = 'schools';
+        currentFilters.district = districtId;
+        
+        // Update district name in the school section
+        document.getElementById('selected-district-name').textContent = districtName;
+        
+        // Load school performance data
+        await loadSchoolPerformance(districtId);
+        
+        // Show school details section and hide district rankings
+        document.getElementById('rankings-section').style.display = 'none';
+        document.getElementById('school-details-section').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error viewing district schools:', error);
+        showError('Failed to load school data: ' + error.message);
+    }
+}
+
+async function loadSchoolPerformance(districtId, gradeSpan = null) {
+    try {
+        let url = `${API_BASE}/analytics/school-performance?district_id=${districtId}`;
+        if (gradeSpan) {
+            url += `&grade_span=${encodeURIComponent(gradeSpan)}`;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error);
+        }
+
+        // Update district statistics
+        updateSchoolStats(data.district_info);
+        
+        // Populate grade span filter
+        populateGradeSpanFilter(data.district_info.available_grade_spans);
+        
+        // Populate school rankings table
+        populateSchoolRankings(data.data);
+        
+        // Create school performance chart
+        createSchoolPerformanceChart(data.data, data.district_info.district_average);
+
+    } catch (error) {
+        console.error('Error loading school performance:', error);
+        throw error;
+    }
+}
+
+function updateSchoolStats(districtInfo) {
+    document.getElementById('district-schools-count').textContent = districtInfo.total_schools;
+    document.getElementById('district-avg-proficiency').textContent = `${districtInfo.district_average}%`;
+    document.getElementById('schools-above-district-avg').textContent = districtInfo.schools_above_district_avg;
+}
+
+function populateGradeSpanFilter(gradeSpans) {
+    const select = document.getElementById('grade-span-filter');
+    
+    // Clear existing options except the first one
+    while (select.children.length > 1) {
+        select.removeChild(select.lastChild);
+    }
+    
+    gradeSpans.forEach(span => {
+        const option = document.createElement('option');
+        option.value = span;
+        option.textContent = span;
+        select.appendChild(option);
+    });
+}
+
+function populateSchoolRankings(schools) {
+    const tbody = document.getElementById('school-rankings');
+    tbody.innerHTML = '';
+
+    schools.forEach(school => {
+        const row = document.createElement('tr');
+        
+        // Performance indicator
+        let indicator = '';
+        if (school.vs_district_indicator === 'above') {
+            indicator = '<span class="performance-indicator above">↑ Above</span>';
+        } else if (school.vs_district_indicator === 'below') {
+            indicator = '<span class="performance-indicator below">↓ Below</span>';
+        } else {
+            indicator = '<span class="performance-indicator equal">= Equal</span>';
+        }
+
+        row.innerHTML = `
+            <td class="rank-number">${school.rank}</td>
+            <td>${school.school_name}</td>
+            <td>${school.grade_span}</td>
+            <td><strong>${school.average_english_proficiency}%</strong></td>
+            <td>${indicator} (${school.vs_district_avg >= 0 ? '+' : ''}${school.vs_district_avg}%)</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function createSchoolPerformanceChart(schools, districtAverage) {
+    const ctx = document.getElementById('school-performance-chart').getContext('2d');
+    
+    // Destroy existing chart if it exists
+    if (schoolPerformanceChart) {
+        schoolPerformanceChart.destroy();
+    }
+
+    const labels = schools.map(school => school.school_name.length > 20 ? 
+        school.school_name.substring(0, 20) + '...' : school.school_name);
+    const proficiencies = schools.map(school => school.average_english_proficiency);
+    
+    // Color-code bars based on performance vs district average
+    const backgroundColors = schools.map(school => {
+        if (school.average_english_proficiency > districtAverage) {
+            return '#28a745'; // Green for above average
+        } else if (school.average_english_proficiency === districtAverage) {
+            return '#ffc107'; // Yellow for equal
+        } else {
+            return '#dc3545'; // Red for below average
+        }
+    });
+
+    schoolPerformanceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'English Proficiency (%)',
+                data: proficiencies,
+                backgroundColor: backgroundColors,
+                borderColor: backgroundColors.map(color => color + 'CC'),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'School Performance Comparison'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'English Proficiency (%)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Schools'
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            },
+            // Add district average line
+            plugins: [{
+                afterDraw: function(chart) {
+                    const ctx = chart.ctx;
+                    const yAxis = chart.scales.y;
+                    const yPos = yAxis.getPixelForValue(districtAverage);
+                    
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(chart.chartArea.left, yPos);
+                    ctx.lineTo(chart.chartArea.right, yPos);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#2c5aa0';
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    
+                    // Add label
+                    ctx.fillStyle = '#2c5aa0';
+                    ctx.font = '12px Arial';
+                    ctx.fillText(`District Avg: ${districtAverage}%`, chart.chartArea.left + 10, yPos - 5);
+                    ctx.restore();
+                }
+            }]
+        }
+    });
+}
+
+function showDistrictsView() {
+    currentView = 'districts';
+    
+    // Show district rankings and hide school details
+    document.getElementById('rankings-section').style.display = 'block';
+    document.getElementById('school-details-section').style.display = 'none';
+    
+    // Reset grade span filter
+    document.getElementById('grade-span-filter').value = '';
+    currentFilters.gradeSpan = '';
 }
