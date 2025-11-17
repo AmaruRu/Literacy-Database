@@ -543,16 +543,24 @@ function createBookCard(book) {
         gradeBadges = `<span class="book-badge badge-grade">${escapeHtml(book.grade_level)}</span>`;
     }
 
+    // Book cover image
+    const coverImage = book.cover_url && book.cover_url.trim() !== ''
+        ? `<img src="${escapeHtml(book.cover_url)}" alt="${escapeHtml(book.title)} cover" class="book-cover" loading="lazy" onerror="this.style.display='none'">`
+        : '';
+
     return `
         <div class="book-card">
-            <div class="book-title">${escapeHtml(book.title)}</div>
-            <div class="book-author">by ${escapeHtml(book.author)}</div>
-            <div class="book-meta">
-                ${gradeBadges}
-                <span class="book-badge badge-lexile">Lexile: ${escapeHtml(book.lexile)}</span>
-                <span class="book-badge ${literatureClass}">
-                    ${escapeHtml(book.literature_type)}
-                </span>
+            ${coverImage}
+            <div class="book-info">
+                <div class="book-title">${escapeHtml(book.title)}</div>
+                <div class="book-author">by ${escapeHtml(book.author)}</div>
+                <div class="book-meta">
+                    ${gradeBadges}
+                    <span class="book-badge badge-lexile">Lexile: ${escapeHtml(book.lexile)}</span>
+                    <span class="book-badge ${literatureClass}">
+                        ${escapeHtml(book.literature_type)}
+                    </span>
+                </div>
             </div>
         </div>
     `;

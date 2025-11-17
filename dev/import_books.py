@@ -59,7 +59,7 @@ def import_books():
     """Import books from Book_Rec.xls file"""
 
     # Path to the Excel file
-    excel_path = '/home/amaru/MS_Literacy_Database/Book_Rec.xls'
+    excel_path = '/home/amaru/MS_Literacy_Database/MS_Lit/Book_Recs.xls'
 
     print(f"Reading book data from {excel_path}...")
 
