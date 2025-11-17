@@ -3,39 +3,255 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Read Mississippi: Every Page Matters</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <title>Books & Resources - Read Mississippi</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header>
-    <h1>📖 Books</h1>
-    <p class="tagline">Every Page Turned is a Step Toward Change</p>
-    <nav>
-      <ul>
-        <li><a href="/mission.html"><button>Mission</button></a></li>
-        <li><a href="/map.html"><button>Literacy Map</button></a></li>
-        <li><a href="/books.html"><button>Books</button></a></li>
-        <li><a href="/dashboard.html"><button>Dashboard</button></a></li>
-      </ul>
-    </nav>
-  </header>
+  
+  <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
 
-  <section id="hero">
-    <h2>Reading is an Adventure 🗺️</h2>
-    <p>Join us as we explore Mississippi's literacy journey—one story, one student, one county at a time.</p>
-    <button onclick="scrollToSection('mission')">Start Exploring</button>
-  </section>
+  <nav class="side-nav" id="side-nav">
+    <div class="nav-brand">
+      <div class="brand-icon">📚</div>
+      <div class="brand-text">
+        <span class="brand-name">Read MS</span>
+        <span class="brand-tagline">Every Page Matters</span>
+      </div>
+    </div>
+    
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-text">Home</span>
+      </a>
+      <a href="mission.html" class="nav-link">
+        <span class="nav-icon">🎯</span>
+        <span class="nav-text">Mission</span>
+      </a>
+      <a href="map.html" class="nav-link">
+        <span class="nav-icon">🗺️</span>
+        <span class="nav-text">Map</span>
+      </a>
+      <a href="books.html" class="nav-link active">
+        <span class="nav-icon">📚</span>
+        <span class="nav-text">Books</span>
+      </a>
+      <a href="dashboard.html" class="nav-link">
+        <span class="nav-icon">📈</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+    </div>
+    
+    <div class="nav-footer">
+      <div class="social-icons">
+        <a href="#" class="social-icon">f</a>
+        <a href="#" class="social-icon">𝕏</a>
+        <a href="#" class="social-icon">in</a>
+      </div>
+    </div>
+  </nav>
 
-  <section id="mission">
-    <h2>📚 Our Mission</h2>
-    <p>We aim to raise awareness about literacy rates across Mississippi and empower communities to take action through the power of reading. Data meets storytelling on this journey.</p>
-  </section>
+  <main class="main-content">
+    
+    <header class="top-bar">
+      <div class="top-bar-content">
+        <div class="logo-compact">
+          <span class="logo-icon">📚</span>
+          <span class="logo-text">Read Mississippi</span>
+        </div>
+        <a href="dashboard.html" class="btn-compact">Dashboard</a>
+      </div>
+    </header>
 
-  <footer>
-    <p>&copy; 2025 Read Mississippi | Built with 📚 by Team Read</p>
-  </footer>
+    <section class="page-hero books-hero">
+      <div class="page-hero-content">
+        <div class="hero-badge">Reading Resources</div>
+        <h1 class="page-title">Every Book is an<br><span class="gradient-text">Adventure</span></h1>
+        <p class="page-subtitle">Curated reading lists and literacy resources for Mississippi students</p>
+      </div>
+    </section>
 
-  <link rel="stylesheet" href="styles.css" />
+    <section class="content-section">
+      <div class="container">
+        
+        <div class="content-intro">
+          <h2>Building a Reading Culture 📖</h2>
+          <p class="large-text">Reading opens doors to knowledge, imagination, and opportunity. Our curated book lists inspire Mississippi students at every reading level.</p>
+        </div>
+
+        <div class="reading-levels-grid">
+          <div class="level-card">
+            <div class="level-badge k2">K-2</div>
+            <h3>Early Readers</h3>
+            <p>Building foundational literacy skills</p>
+            <ul class="book-list">
+              <li>Where the Wild Things Are - Maurice Sendak</li>
+              <li>The Very Hungry Caterpillar - Eric Carle</li>
+              <li>Brown Bear, Brown Bear - Bill Martin Jr.</li>
+              <li>Corduroy - Don Freeman</li>
+            </ul>
+            <div class="skills-focus">Focus: Phonics & Sight Words</div>
+          </div>
+
+          <div class="level-card">
+            <div class="level-badge grade35">3-5</div>
+            <h3>Developing Readers</h3>
+            <p>Expanding vocabulary and comprehension</p>
+            <ul class="book-list">
+              <li>Charlotte's Web - E.B. White</li>
+              <li>Because of Winn-Dixie - Kate DiCamillo</li>
+              <li>The One and Only Ivan - K. Applegate</li>
+              <li>Roll of Thunder, Hear My Cry - M. Taylor</li>
+            </ul>
+            <div class="skills-focus">Focus: Fluency & Vocabulary</div>
+          </div>
+
+          <div class="level-card">
+            <div class="level-badge grade68">6-8</div>
+            <h3>Middle School</h3>
+            <p>Exploring complex themes</p>
+            <ul class="book-list">
+              <li>The Giver - Lois Lowry</li>
+              <li>Wonder - R.J. Palacio</li>
+              <li>Mississippi Trial, 1955 - Chris Crowe</li>
+              <li>Hidden Figures - Margot Lee Shetterly</li>
+            </ul>
+            <div class="skills-focus">Focus: Analysis & Themes</div>
+          </div>
+
+          <div class="level-card">
+            <div class="level-badge grade912">9-12</div>
+            <h3>High School</h3>
+            <p>Developing advanced literacy</p>
+            <ul class="book-list">
+              <li>To Kill a Mockingbird - Harper Lee</li>
+              <li>The Hate U Give - Angie Thomas</li>
+              <li>Their Eyes Were Watching God - Z.N. Hurston</li>
+              <li>The Immortal Life of Henrietta Lacks</li>
+            </ul>
+            <div class="skills-focus">Focus: Literary Analysis</div>
+          </div>
+        </div>
+
+        <div class="ms-authors">
+          <h2>Mississippi Authors 🏛️</h2>
+          <p>Celebrate Mississippi's rich literary heritage</p>
+          <div class="authors-grid">
+            <div class="author-card">
+              <h3>William Faulkner</h3>
+              <p class="author-location">Oxford, MS</p>
+              <p class="author-work">Nobel Prize winner • The Sound and the Fury</p>
+            </div>
+            <div class="author-card">
+              <h3>Eudora Welty</h3>
+              <p class="author-location">Jackson, MS</p>
+              <p class="author-work">Pulitzer Prize winner • The Optimist's Daughter</p>
+            </div>
+            <div class="author-card">
+              <h3>Richard Wright</h3>
+              <p class="author-location">Natchez, MS</p>
+              <p class="author-work">Influential author • Native Son, Black Boy</p>
+            </div>
+            <div class="author-card">
+              <h3>Jesmyn Ward</h3>
+              <p class="author-location">DeLisle, MS</p>
+              <p class="author-work">2x National Book Award • Salvage the Bones</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="resources-grid-page">
+          <div class="resource-box">
+            <div class="resource-icon-large">👨‍🏫</div>
+            <h3>For Educators</h3>
+            <ul>
+              <li>Guided reading techniques</li>
+              <li>Phonics instruction methods</li>
+              <li>Assessment tools</li>
+            </ul>
+          </div>
+
+          <div class="resource-box">
+            <div class="resource-icon-large">🏠</div>
+            <h3>For Parents</h3>
+            <ul>
+              <li>Reading routines at home</li>
+              <li>Choosing age-appropriate books</li>
+              <li>Building home libraries</li>
+            </ul>
+          </div>
+
+          <div class="resource-box">
+            <div class="resource-icon-large">🌟</div>
+            <h3>Programs</h3>
+            <ul>
+              <li>Summer reading challenges</li>
+              <li>Book clubs for students</li>
+              <li>Author visit programs</li>
+            </ul>
+          </div>
+
+          <div class="resource-box">
+            <div class="resource-icon-large">💻</div>
+            <h3>Digital Resources</h3>
+            <ul>
+              <li>Online reading platforms</li>
+              <li>E-book libraries</li>
+              <li>Educational apps</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cta-section-page">
+          <h2>Explore Literacy Data</h2>
+          <p>See how reading proficiency is improving across Mississippi</p>
+          <button class="btn-primary" onclick="window.location.href='dashboard.html'">View Dashboard →</button>
+        </div>
+
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-main">
+          <div class="footer-brand">
+            <div class="brand-icon-footer">📚</div>
+            <div>
+              <div class="footer-title">Read Mississippi</div>
+              <div class="footer-tagline">Every Page Matters</div>
+            </div>
+          </div>
+          
+          <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="mission.html">Mission</a>
+            <a href="books.html">Books</a>
+            <a href="map.html">Map</a>
+            <a href="dashboard.html">Dashboard</a>
+          </div>
+        </div>
+        
+        <div class="footer-bottom">
+          <p>&copy; 2025 Read Mississippi Initiative</p>
+          <div class="footer-legal">
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Contact</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
   <script src="script.js"></script>
+  <script src="modern.js"></script>
 </body>
 </html>

@@ -3,39 +3,170 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Read Mississippi: Every Page Matters</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <title>Mission - Read Mississippi</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header>
-    <h1>📖 Mission</h1>
-    <p class="tagline">Every Page Turned is a Step Toward Change</p>
-    <nav>
-      <ul>
-        <li><a href="/mission.html"><button>Mission</button></a></li>
-        <li><a href="/map.html"><button>Literacy Map</button></a></li>
-        <li><a href="/books.html"><button>Books</button></a></li>
-        <li><a href="/dashboard.html"><button>Dashboard</button></a></li>
-      </ul>
-    </nav>
-  </header>
+  
+  <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
 
-  <section id="hero">
-    <h2>Reading is an Adventure 🗺️</h2>
-    <p>Join us as we explore Mississippi's literacy journey—one story, one student, one county at a time.</p>
-    <button onclick="scrollToSection('mission')">Start Exploring</button>
-  </section>
+  <nav class="side-nav" id="side-nav">
+    <div class="nav-brand">
+      <div class="brand-icon">📚</div>
+      <div class="brand-text">
+        <span class="brand-name">Read MS</span>
+        <span class="brand-tagline">Every Page Matters</span>
+      </div>
+    </div>
+    
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-text">Home</span>
+      </a>
+      <a href="mission.html" class="nav-link active">
+        <span class="nav-icon">🎯</span>
+        <span class="nav-text">Mission</span>
+      </a>
+      <a href="map.html" class="nav-link">
+        <span class="nav-icon">🗺️</span>
+        <span class="nav-text">Map</span>
+      </a>
+      <a href="books.html" class="nav-link">
+        <span class="nav-icon">📚</span>
+        <span class="nav-text">Books</span>
+      </a>
+      <a href="dashboard.html" class="nav-link">
+        <span class="nav-icon">📈</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+    </div>
+    
+    <div class="nav-footer">
+      <div class="social-icons">
+        <a href="#" class="social-icon">f</a>
+        <a href="#" class="social-icon">𝕏</a>
+        <a href="#" class="social-icon">in</a>
+      </div>
+    </div>
+  </nav>
 
-  <section id="mission">
-    <h2>📚 Our Mission</h2>
-    <p>We aim to raise awareness about literacy rates across Mississippi and empower communities to take action through the power of reading. Data meets storytelling on this journey.</p>
-  </section>
+  <main class="main-content">
+    
+    <header class="top-bar">
+      <div class="top-bar-content">
+        <div class="logo-compact">
+          <span class="logo-icon">📚</span>
+          <span class="logo-text">Read Mississippi</span>
+        </div>
+        <a href="dashboard.html" class="btn-compact">Dashboard</a>
+      </div>
+    </header>
 
-  <footer>
-    <p>&copy; 2025 Read Mississippi | Built with 📚 by Team Read</p>
-  </footer>
+    <section class="page-hero">
+      <div class="page-hero-content">
+        <div class="hero-badge">Our Purpose</div>
+        <h1 class="page-title">Our Mission to<br><span class="gradient-text">Transform</span> Literacy</h1>
+        <p class="page-subtitle">Empowering Mississippi communities through data-driven insights</p>
+      </div>
+    </section>
 
-  <link rel="stylesheet" href="styles.css" />
+    <section class="content-section">
+      <div class="container">
+        
+        <div class="content-intro">
+          <h2>Why Literacy Matters</h2>
+          <p class="large-text">Literacy is the foundation of educational success and lifelong learning. Our platform makes comprehensive literacy data accessible and actionable for educators, policymakers, and communities.</p>
+        </div>
+
+        <div class="mission-pillars">
+          <div class="pillar-card">
+            <div class="pillar-icon">📊</div>
+            <h3>Data-Driven Insights</h3>
+            <p>Transparent, comprehensive views of literacy performance across Mississippi with real-time tracking and trend analysis.</p>
+          </div>
+
+          <div class="pillar-card">
+            <div class="pillar-icon">🤝</div>
+            <h3>Community Empowerment</h3>
+            <p>Making data accessible to everyone to drive ownership of educational outcomes and positive community change.</p>
+          </div>
+
+          <div class="pillar-card">
+            <div class="pillar-icon">🎓</div>
+            <h3>Educational Equity</h3>
+            <p>Highlighting and addressing disparities to ensure every student receives the support they need to succeed.</p>
+          </div>
+
+          <div class="pillar-card">
+            <div class="pillar-icon">💡</div>
+            <h3>Innovation & Action</h3>
+            <p>Combining technology with storytelling to inspire meaningful improvements in literacy outcomes statewide.</p>
+          </div>
+        </div>
+
+        <div class="impact-section-mission">
+          <h2>Our Impact Goals</h2>
+          <div class="impact-list">
+            <div class="impact-item">✓ Increase awareness of literacy challenges and successes</div>
+            <div class="impact-item">✓ Provide educators with actionable data</div>
+            <div class="impact-item">✓ Support evidence-based policymaking</div>
+            <div class="impact-item">✓ Engage communities in improvement efforts</div>
+            <div class="impact-item">✓ Celebrate progress and share best practices</div>
+            <div class="impact-item">✓ Bridge achievement gaps for all students</div>
+          </div>
+        </div>
+
+        <div class="cta-section-page">
+          <h2>See Our Mission in Action</h2>
+          <p>Explore our interactive dashboard to discover literacy insights</p>
+          <button class="btn-primary" onclick="window.location.href='dashboard.html'">View Dashboard →</button>
+        </div>
+
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-main">
+          <div class="footer-brand">
+            <div class="brand-icon-footer">📚</div>
+            <div>
+              <div class="footer-title">Read Mississippi</div>
+              <div class="footer-tagline">Every Page Matters</div>
+            </div>
+          </div>
+          
+          <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="mission.html">Mission</a>
+            <a href="books.html">Books</a>
+            <a href="map.html">Map</a>
+            <a href="dashboard.html">Dashboard</a>
+          </div>
+        </div>
+        
+        <div class="footer-bottom">
+          <p>&copy; 2025 Read Mississippi Initiative</p>
+          <div class="footer-legal">
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Contact</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
   <script src="script.js"></script>
+  <script src="modern.js"></script>
 </body>
 </html>
