@@ -64,8 +64,8 @@ async function loadKeyStatistics() {
         document.getElementById('total-schools').textContent = schoolsData.count || 0;
         document.getElementById('state-proficiency').textContent = `${stateProficiency}%`;
         
-        // Calculate total records
-        const totalRecords = subgroupData.data.reduce((sum, sg) => sum + sg.record_count, 0);
+        // Use actual performance records count from health endpoint
+        const totalRecords = healthData.counts.performance_records || 0;
         document.getElementById('total-students').textContent = totalRecords.toLocaleString();
 
     } catch (error) {

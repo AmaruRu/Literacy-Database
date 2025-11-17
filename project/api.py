@@ -428,6 +428,7 @@ def health_check():
         # Simple database connectivity check
         district_count = Districts.query.count()
         school_count = Schools.query.count()
+        performance_records_count = PerformanceRecords.query.count()
         
         return jsonify({
             'success': True,
@@ -435,7 +436,8 @@ def health_check():
             'database': 'connected',
             'counts': {
                 'districts': district_count,
-                'schools': school_count
+                'schools': school_count,
+                'performance_records': performance_records_count
             }
         })
     
