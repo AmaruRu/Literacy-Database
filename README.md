@@ -12,9 +12,10 @@ The **Mississippi Literacy Database** provides an intuitive, data-driven platfor
 
 - **📊 Interactive Dashboard** - Real-time analytics with dynamic charts and visualizations
 - **🏆 District Rankings** - Performance comparisons across 150 Mississippi school districts  
+- **🏫 School-Level Drill-Down** - Individual school analysis within districts with performance comparisons
 - **👥 Demographic Analysis** - Performance breakdowns by race, gender, economic status, and special populations
 - **📈 Performance Metrics** - Advanced analytics including achievement gaps and trend analysis
-- **🔍 Smart Filtering** - District-specific data exploration and comparison tools
+- **🔍 Enhanced Filtering System** - Multi-dimensional filters by county, school type, performance range, and grade span
 - **📱 Responsive Design** - Mobile-friendly interface accessible on any device
 - **🔌 REST API** - Comprehensive data access for developers and researchers
 
