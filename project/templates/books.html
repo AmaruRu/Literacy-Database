@@ -3,138 +3,255 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Book Recommendations - Mississippi Literacy Database</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/books.css') }}">
+  <title>Books & Resources - Read Mississippi</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header>
-    <h1>Book Recommendations</h1>
-    <p class="tagline">Discover Your Next Book</p>
-    <nav>
-      <ul>
-        <li><a href="/"><button>Home</button></a></li>
-        <li><a href="/mission.html"><button>Mission</button></a></li>
-        <li><a href="/map.html"><button>Literacy Map</button></a></li>
-        <li><a href="/dashboard.html"><button>Dashboard</button></a></li>
-      </ul>
-    </nav>
-  </header>
+  
+  <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
 
-  <section id="books-section">
-    <div class="filters-container">
-      <h2>Books for All Reading Levels</h2>
+  <nav class="side-nav" id="side-nav">
+    <div class="nav-brand">
+      <div class="brand-icon">📚</div>
+      <div class="brand-text">
+        <span class="brand-name">Read MS</span>
+        <span class="brand-tagline">Every Page Matters</span>
+      </div>
+    </div>
+    
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-text">Home</span>
+      </a>
+      <a href="mission.html" class="nav-link">
+        <span class="nav-icon">🎯</span>
+        <span class="nav-text">Mission</span>
+      </a>
+      <a href="map.html" class="nav-link">
+        <span class="nav-icon">🗺️</span>
+        <span class="nav-text">Map</span>
+      </a>
+      <a href="books.html" class="nav-link active">
+        <span class="nav-icon">📚</span>
+        <span class="nav-text">Books</span>
+      </a>
+      <a href="dashboard.html" class="nav-link">
+        <span class="nav-icon">📈</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+    </div>
+    
+    <div class="nav-footer">
+      <div class="social-icons">
+        <a href="#" class="social-icon">f</a>
+        <a href="#" class="social-icon">𝕏</a>
+        <a href="#" class="social-icon">in</a>
+      </div>
+    </div>
+  </nav>
 
-      <div class="filters-horizontal">
-        <!-- Grade Level Book Stack -->
-        <div class="filter-group filter-grade">
-          <label>Grade Level:</label>
-          <div class="book-stack-container">
-            <!-- Grade 12 at top, Kindergarten at bottom -->
-            <div class="book-spine" data-grade="12th Grade" data-position="12">
-              <span class="book-label">Grade 12</span>
-            </div>
-            <div class="book-spine" data-grade="11th Grade" data-position="11">
-              <span class="book-label">Grade 11</span>
-            </div>
-            <div class="book-spine" data-grade="10th Grade" data-position="10">
-              <span class="book-label">Grade 10</span>
-            </div>
-            <div class="book-spine" data-grade="9th Grade" data-position="9">
-              <span class="book-label">Grade 9</span>
-            </div>
-            <div class="book-spine" data-grade="8th Grade" data-position="8">
-              <span class="book-label">Grade 8</span>
-            </div>
-            <div class="book-spine" data-grade="7th Grade" data-position="7">
-              <span class="book-label">Grade 7</span>
-            </div>
-            <div class="book-spine" data-grade="6th Grade" data-position="6">
-              <span class="book-label">Grade 6</span>
-            </div>
-            <div class="book-spine" data-grade="5th Grade" data-position="5">
-              <span class="book-label">Grade 5</span>
-            </div>
-            <div class="book-spine" data-grade="4th Grade" data-position="4">
-              <span class="book-label">Grade 4</span>
-            </div>
-            <div class="book-spine" data-grade="3rd Grade" data-position="3">
-              <span class="book-label">Grade 3</span>
-            </div>
-            <div class="book-spine" data-grade="2nd Grade" data-position="2">
-              <span class="book-label">Grade 2</span>
-            </div>
-            <div class="book-spine" data-grade="1st Grade" data-position="1">
-              <span class="book-label">Grade 1</span>
-            </div>
-            <div class="book-spine" data-grade="Kindergarten" data-position="0">
-              <span class="book-label">Kindergarten</span>
-            </div>
-          </div>
-          <button type="button" class="clear-grades-btn" onclick="clearGradeSelection()">Clear</button>
+  <main class="main-content">
+    
+    <header class="top-bar">
+      <div class="top-bar-content">
+        <div class="logo-compact">
+          <span class="logo-icon">📚</span>
+          <span class="logo-text">Read Mississippi</span>
+        </div>
+        <a href="dashboard.html" class="btn-compact">Dashboard</a>
+      </div>
+    </header>
+
+    <section class="page-hero books-hero">
+      <div class="page-hero-content">
+        <div class="hero-badge">Reading Resources</div>
+        <h1 class="page-title">Every Book is an<br><span class="gradient-text">Adventure</span></h1>
+        <p class="page-subtitle">Curated reading lists and literacy resources for Mississippi students</p>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="container">
+        
+        <div class="content-intro">
+          <h2>Building a Reading Culture 📖</h2>
+          <p class="large-text">Reading opens doors to knowledge, imagination, and opportunity. Our curated book lists inspire Mississippi students at every reading level.</p>
         </div>
 
-        <!-- Literature Type and Lexile Range -->
-        <div class="filter-group filter-other">
-          <div class="filter-subgroup">
-            <label for="literature-select">Literature Type:</label>
-            <select id="literature-select">
-              <option value="">All</option>
-              <option value="Fiction">Fiction</option>
-              <option value="Nonfiction">Nonfiction</option>
-            </select>
+        <div class="reading-levels-grid">
+          <div class="level-card">
+            <div class="level-badge k2">K-2</div>
+            <h3>Early Readers</h3>
+            <p>Building foundational literacy skills</p>
+            <ul class="book-list">
+              <li>Where the Wild Things Are - Maurice Sendak</li>
+              <li>The Very Hungry Caterpillar - Eric Carle</li>
+              <li>Brown Bear, Brown Bear - Bill Martin Jr.</li>
+              <li>Corduroy - Don Freeman</li>
+            </ul>
+            <div class="skills-focus">Focus: Phonics & Sight Words</div>
           </div>
 
-          <div class="filter-subgroup">
-            <label>Lexile Range:</label>
-            <div class="lexile-inputs-compact">
-              <input type="number" id="lexile-min" placeholder="Min" min="0" max="2000" step="10">
-              <span class="lexile-separator">to</span>
-              <input type="number" id="lexile-max" placeholder="Max" min="0" max="2000" step="10">
+          <div class="level-card">
+            <div class="level-badge grade35">3-5</div>
+            <h3>Developing Readers</h3>
+            <p>Expanding vocabulary and comprehension</p>
+            <ul class="book-list">
+              <li>Charlotte's Web - E.B. White</li>
+              <li>Because of Winn-Dixie - Kate DiCamillo</li>
+              <li>The One and Only Ivan - K. Applegate</li>
+              <li>Roll of Thunder, Hear My Cry - M. Taylor</li>
+            </ul>
+            <div class="skills-focus">Focus: Fluency & Vocabulary</div>
+          </div>
+
+          <div class="level-card">
+            <div class="level-badge grade68">6-8</div>
+            <h3>Middle School</h3>
+            <p>Exploring complex themes</p>
+            <ul class="book-list">
+              <li>The Giver - Lois Lowry</li>
+              <li>Wonder - R.J. Palacio</li>
+              <li>Mississippi Trial, 1955 - Chris Crowe</li>
+              <li>Hidden Figures - Margot Lee Shetterly</li>
+            </ul>
+            <div class="skills-focus">Focus: Analysis & Themes</div>
+          </div>
+
+          <div class="level-card">
+            <div class="level-badge grade912">9-12</div>
+            <h3>High School</h3>
+            <p>Developing advanced literacy</p>
+            <ul class="book-list">
+              <li>To Kill a Mockingbird - Harper Lee</li>
+              <li>The Hate U Give - Angie Thomas</li>
+              <li>Their Eyes Were Watching God - Z.N. Hurston</li>
+              <li>The Immortal Life of Henrietta Lacks</li>
+            </ul>
+            <div class="skills-focus">Focus: Literary Analysis</div>
+          </div>
+        </div>
+
+        <div class="ms-authors">
+          <h2>Mississippi Authors 🏛️</h2>
+          <p>Celebrate Mississippi's rich literary heritage</p>
+          <div class="authors-grid">
+            <div class="author-card">
+              <h3>William Faulkner</h3>
+              <p class="author-location">Oxford, MS</p>
+              <p class="author-work">Nobel Prize winner • The Sound and the Fury</p>
             </div>
-            <small>Leave blank for all levels (including BR)</small>
+            <div class="author-card">
+              <h3>Eudora Welty</h3>
+              <p class="author-location">Jackson, MS</p>
+              <p class="author-work">Pulitzer Prize winner • The Optimist's Daughter</p>
+            </div>
+            <div class="author-card">
+              <h3>Richard Wright</h3>
+              <p class="author-location">Natchez, MS</p>
+              <p class="author-work">Influential author • Native Son, Black Boy</p>
+            </div>
+            <div class="author-card">
+              <h3>Jesmyn Ward</h3>
+              <p class="author-location">DeLisle, MS</p>
+              <p class="author-work">2x National Book Award • Salvage the Bones</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="resources-grid-page">
+          <div class="resource-box">
+            <div class="resource-icon-large">👨‍🏫</div>
+            <h3>For Educators</h3>
+            <ul>
+              <li>Guided reading techniques</li>
+              <li>Phonics instruction methods</li>
+              <li>Assessment tools</li>
+            </ul>
           </div>
 
-          <!-- Selected grades display -->
-          <div class="selected-grades-display">
-            <strong>Selected Grades:</strong> <span id="selected-grades-text">All Grades</span>
+          <div class="resource-box">
+            <div class="resource-icon-large">🏠</div>
+            <h3>For Parents</h3>
+            <ul>
+              <li>Reading routines at home</li>
+              <li>Choosing age-appropriate books</li>
+              <li>Building home libraries</li>
+            </ul>
           </div>
-          <div class="filter-actions">
-            <button class="btn-apply" onclick="applyFilters()">Apply Filters</button>
-            <button class="btn-clear" onclick="clearFilters()">Clear All Filters</button>
+
+          <div class="resource-box">
+            <div class="resource-icon-large">🌟</div>
+            <h3>Programs</h3>
+            <ul>
+              <li>Summer reading challenges</li>
+              <li>Book clubs for students</li>
+              <li>Author visit programs</li>
+            </ul>
+          </div>
+
+          <div class="resource-box">
+            <div class="resource-icon-large">💻</div>
+            <h3>Digital Resources</h3>
+            <ul>
+              <li>Online reading platforms</li>
+              <li>E-book libraries</li>
+              <li>Educational apps</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cta-section-page">
+          <h2>Explore Literacy Data</h2>
+          <p>See how reading proficiency is improving across Mississippi</p>
+          <button class="btn-primary" onclick="window.location.href='dashboard.html'">View Dashboard →</button>
+        </div>
+
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-main">
+          <div class="footer-brand">
+            <div class="brand-icon-footer">📚</div>
+            <div>
+              <div class="footer-title">Read Mississippi</div>
+              <div class="footer-tagline">Every Page Matters</div>
+            </div>
+          </div>
+          
+          <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="mission.html">Mission</a>
+            <a href="books.html">Books</a>
+            <a href="map.html">Map</a>
+            <a href="dashboard.html">Dashboard</a>
+          </div>
+        </div>
+        
+        <div class="footer-bottom">
+          <p>&copy; 2025 Read Mississippi Initiative</p>
+          <div class="footer-legal">
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Contact</a>
           </div>
         </div>
       </div>
-    </div>
+    </footer>
 
-      
+  </main>
 
-    <div class="sort-container">
-      <label for="sort-select">Sort by:</label>
-      <select id="sort-select" onchange="applySorting(this.value)">
-        <option value="title-asc">Title (A-Z)</option>
-        <option value="title-desc">Title (Z-A)</option>
-        <option value="author-asc">Author Last Name (A-Z)</option>
-        <option value="author-desc">Author Last Name (Z-A)</option>
-        <option value="grade-asc">Grade Level (Ascending)</option>
-        <option value="grade-desc">Grade Level (Descending)</option>
-        <option value="lexile-asc">Lexile Level (Ascending)</option>
-        <option value="lexile-desc">Lexile Level (Descending)</option>
-        <option value="type-asc">Fiction - Nonfiction</option>
-        <option value="type-desc">Nonfiction - Fiction</option>
-      </select>
-    </div>
-
-    <div id="results-info" class="results-info"></div>
-    <div id="books-container" class="books-grid"></div>
-    <div id="pagination-container" class="pagination-container"></div>
-  </section>
-
-  <footer>
-    <p>&copy; 2025 Mississippi Literacy Database</p>
-  </footer>
-
-  <!-- Books page JavaScript -->
+  <script src="{{ url_for('static', filename='modern.js') }}"></script>
   <script src="{{ url_for('static', filename='books.js') }}"></script>
 </body>
 </html>

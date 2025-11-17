@@ -3,37 +3,149 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Read Mississippi: Every Page Matters</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <title>Mississippi Literacy Map - Read Mississippi</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
      crossorigin=""/>
   <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-providers@latest/leaflet-providers.js"></script>
+  <style>
+    /* Map-specific modern styles */
+    .map-nav {
+      background: linear-gradient(135deg, var(--blue-600) 0%, var(--purple-700) 100%);
+      padding: 20px 0;
+      margin-bottom: 0;
+    }
+    
+    .map-nav .nav-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+    
+    .map-title {
+      color: var(--white);
+      margin: 0;
+      font-size: 1.8em;
+      font-weight: 600;
+    }
+    
+    .map-tagline {
+      color: var(--gold-500);
+      margin: 4px 0 0;
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+    
+    .map-breadcrumbs {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .map-breadcrumbs a {
+      color: var(--gold-500);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: var(--transition-base);
+      font-size: 0.9em;
+    }
+    
+    .map-breadcrumbs a:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .map-breadcrumbs a.active {
+      background: var(--gold-500);
+      color: var(--blue-600);
+    }
+    
+    #map {
+      height: calc(100vh - 120px);
+      width: 100%;
+      min-height: 600px;
+      z-index: 1;
+    }
+    
+    /* Enhanced map controls with modern styling */
+    .leaflet-control {
+      border-radius: 12px !important;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+    }
+    
+    .leaflet-popup-content-wrapper {
+      border-radius: 12px !important;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .leaflet-popup-tip {
+      border-radius: 4px !important;
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>Literacy Map</h1>
-    <p class="tagline">Visualize Mississippi's Literacy</p>
-    <nav>
-      <ul>
-        <li><a href="/"><button>Home</button></a></li>
-        <li><a href="mission.html"><button>Mission</button></a></li>
-        <li><a href="books.html"><button>Books</button></a></li>
-        <li><a href="dashboard.html"><button>Dashboard</button></a></li>
-      </ul>
-    </nav>
+  <!-- Modern Map Header -->
+  <header class="map-nav">
+    <div class="nav-content">
+      <div>
+        <h1 class="map-title">🗺️ Mississippi Literacy Map</h1>
+        <p class="map-tagline">Visualize Mississippi's Literacy Performance</p>
+      </div>
+      <div class="map-breadcrumbs">
+        <a href="/">Home</a>
+        <a href="/mission.html">Mission</a>
+        <a href="/books.html">Books</a>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/map.html" class="active">Map</a>
+      </div>
+    </div>
   </header>
 
   <section id="map"></section>
 
-  <footer>
-    <p>&copy; 2025 Read Mississippi</p>
+  <!-- Modern Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-main">
+        <div class="footer-brand">
+          <div class="brand-icon-footer">📚</div>
+          <div>
+            <div class="footer-title">Read Mississippi</div>
+            <div class="footer-tagline">Every Page Matters</div>
+          </div>
+        </div>
+        
+        <div class="footer-links">
+          <a href="/">Home</a>
+          <a href="/mission.html">Mission</a>
+          <a href="/books.html">Books</a>
+          <a href="/map.html">Map</a>
+          <a href="/dashboard.html">Dashboard</a>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2025 Read Mississippi Initiative</p>
+        <div class="footer-legal">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </div>
   </footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
+  <script src="{{ url_for('static', filename='modern.js') }}"></script>
   <script src="{{ url_for('static', filename='lit_map.js') }}"></script>
 </body>
 </html>

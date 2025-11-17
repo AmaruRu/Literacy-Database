@@ -3,39 +3,395 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mississippi Literacy Database: Every Page Matters</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <title>Read Mississippi | Every Page Matters</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header>
-    <h1>📖 Mississippi Literacy Database</h1>
-    <p class="tagline">Every Page Turned is a Step Toward Change</p>
-    <nav>
-      <ul>
-        <li><a href="mission.html"><button>Mission</button></a></li>
-        <li><a href="map.html"><button>Literacy Map</button></a></li>
-        <li><a href="books.html"><button>Books</button></a></li>
-        <li><a href="dashboard.html"><button>Dashboard</button></a></li>
-      </ul>
-    </nav>
-  </header>
+  
+  <!-- Mobile Menu Toggle -->
+  <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
 
-  <section id="hero">
-    <h2>Reading is an Adventure 🗺️</h2>
-    <p>Join us as we explore Mississippi's literacy journey—one story, one student, one county at a time.</p>
-    <button onclick="scrollToSection('mission')">Start Exploring</button>
-  </section>
+  <!-- Side Navigation (Desktop) -->
+  <nav class="side-nav" id="side-nav">
+    <div class="nav-brand">
+      <div class="brand-icon">📚</div>
+      <div class="brand-text">
+        <span class="brand-name">Read MS</span>
+        <span class="brand-tagline">Every Page Matters</span>
+      </div>
+    </div>
+    
+    <div class="nav-links">
+      <a href="#hero" class="nav-link active" data-section="hero">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-text">Home</span>
+      </a>
+      <a href="#mission" class="nav-link" data-section="mission">
+        <span class="nav-icon">🎯</span>
+        <span class="nav-text">Mission</span>
+      </a>
+      <a href="#impact" class="nav-link" data-section="impact">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">Impact</span>
+      </a>
+      <a href="#timeline" class="nav-link" data-section="timeline">
+        <span class="nav-icon">📅</span>
+        <span class="nav-text">Journey</span>
+      </a>
+      <a href="#resources" class="nav-link" data-section="resources">
+        <span class="nav-icon">📚</span>
+        <span class="nav-text">Resources</span>
+      </a>
+      <a href="/dashboard.html" class="nav-link">
+        <span class="nav-icon">📈</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+    </div>
+    
+    <div class="nav-footer">
+      <div class="social-icons">
+        <a href="#" class="social-icon">f</a>
+        <a href="#" class="social-icon">𝕏</a>
+        <a href="#" class="social-icon">in</a>
+      </div>
+    </div>
+  </nav>
 
-  <section id="mission">
-    <h2>📚 Our Mission</h2>
-    <p>We aim to raise awareness about literacy rates across Mississippi and empower communities to take action through the power of reading. Data meets storytelling on this journey.</p>
-  </section>
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- Compact Top Bar (Mobile) -->
+    <header class="top-bar">
+      <div class="top-bar-content">
+        <div class="logo-compact">
+          <span class="logo-icon">📚</span>
+          <span class="logo-text">Read Mississippi</span>
+        </div>
+        <a href="/dashboard.html" class="btn-compact">Dashboard</a>
+      </div>
+    </header>
 
-  <footer>
-    <p>&copy; 2025 Mississippi Literacy Database</p>
-  </footer>
+    <!-- Hero Section - Full Height -->
+    <section id="hero" class="hero-section">
+      <div class="hero-content">
+        <div class="hero-badge">Mississippi Literacy Initiative</div>
+        <h1 class="hero-title">
+          Every Page<br>
+          <span class="gradient-text">Turned</span> is a<br>
+          Step Forward
+        </h1>
+        <p class="hero-subtitle">Empowering communities through data-driven literacy insights across all 82 counties in Mississippi</p>
+        
+        <div class="hero-cta">
+          <button class="btn-primary" onclick="smoothScroll('#mission')">
+            Explore Our Mission
+            <span class="btn-arrow">→</span>
+          </button>
+          <button class="btn-ghost" onclick="window.location.href='/dashboard.html'">
+            View Live Data
+          </button>
+        </div>
 
-  <link rel="stylesheet" href="styles.css" />
-  <script src="script.js"></script>
+        <!-- Floating Stats Cards -->
+        <div class="floating-stats">
+          <div class="stat-float" style="--delay: 0s">
+            <div class="stat-value" data-count="150">0</div>
+            <div class="stat-label">Districts</div>
+          </div>
+          <div class="stat-float" style="--delay: 0.2s">
+            <div class="stat-value" data-count="1000">0</div>
+            <div class="stat-label">Schools</div>
+          </div>
+          <div class="stat-float" style="--delay: 0.4s">
+            <div class="stat-value" data-count="450">0</div>
+            <div class="stat-label">K+ Students</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decorative Elements -->
+      <div class="hero-decoration">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+        <div class="circle circle-3"></div>
+      </div>
+    </section>
+
+    <!-- Mission Section - Split Layout -->
+    <section id="mission" class="mission-section">
+      <div class="section-grid">
+        <div class="section-content">
+          <div class="section-label">Our Purpose</div>
+          <h2 class="section-title">Building a literate Mississippi, one student at a time</h2>
+          <p class="section-description">We combine comprehensive educational data with accessible visualizations to make literacy information actionable for educators, policymakers, and communities across the state.</p>
+          
+          <div class="mission-pillars">
+            <div class="pillar">
+              <div class="pillar-icon">📊</div>
+              <h3>Data-Driven</h3>
+              <p>Transparent insights from 150+ districts</p>
+            </div>
+            <div class="pillar">
+              <div class="pillar-icon">🤝</div>
+              <h3>Community First</h3>
+              <p>Empowering local action & change</p>
+            </div>
+            <div class="pillar">
+              <div class="pillar-icon">🎓</div>
+              <h3>Equity Focused</h3>
+              <p>Addressing disparities in achievement</p>
+            </div>
+            <div class="pillar">
+              <div class="pillar-icon">💡</div>
+              <h3>Innovation</h3>
+              <p>Modern tools for modern challenges</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="section-visual">
+          <div class="glass-card large">
+            <div class="card-content">
+              <div class="stat-big">
+                <span class="stat-number">65%</span>
+                <span class="stat-trend">↗ +8%</span>
+              </div>
+              <p class="stat-description">Average reading proficiency across Mississippi</p>
+            </div>
+          </div>
+          
+          <div class="glass-card small" style="--delay: 0.2s">
+            <div class="icon-badge">🏆</div>
+            <p class="mini-stat"><strong>12</strong> districts improved by 15%+</p>
+          </div>
+          
+          <div class="glass-card small" style="--delay: 0.4s">
+            <div class="icon-badge">📈</div>
+            <p class="mini-stat"><strong>Live</strong> data updates monthly</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Impact Stats - Bento Grid -->
+    <section id="impact" class="impact-section">
+      <div class="container">
+        <div class="section-header-center">
+          <div class="section-label">Real Impact</div>
+          <h2 class="section-title">Making a Measurable Difference</h2>
+        </div>
+
+        <div class="bento-grid">
+          <!-- Large Card - Main Stat -->
+          <div class="bento-card featured" data-animate="fadeIn">
+            <div class="bento-header">
+              <span class="bento-icon">📚</span>
+              <span class="bento-badge">This Year</span>
+            </div>
+            <div class="bento-stat">450,000+</div>
+            <div class="bento-label">Student Records Tracked</div>
+            <p class="bento-description">Comprehensive literacy data across all grade levels</p>
+          </div>
+
+          <!-- Medium Cards -->
+          <div class="bento-card" data-animate="fadeIn" style="--delay: 0.1s">
+            <span class="bento-icon-small">🎯</span>
+            <div class="bento-stat-small">82</div>
+            <div class="bento-label">Counties Covered</div>
+          </div>
+
+          <div class="bento-card" data-animate="fadeIn" style="--delay: 0.2s">
+            <span class="bento-icon-small">👥</span>
+            <div class="bento-stat-small">15K+</div>
+            <div class="bento-label">Educators Using</div>
+          </div>
+
+          <!-- Testimonial Card -->
+          <div class="bento-card quote" data-animate="fadeIn" style="--delay: 0.3s">
+            <div class="quote-mark">"</div>
+            <p class="quote-text">This platform transformed how we identify students who need support</p>
+            <div class="quote-author">
+              <strong>Sarah J.</strong> • Jackson Principal
+            </div>
+          </div>
+
+          <!-- Progress Card -->
+          <div class="bento-card progress" data-animate="fadeIn" style="--delay: 0.4s">
+            <div class="progress-header">
+              <span class="bento-label">Proficiency Growth</span>
+              <span class="progress-percent">+12%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 75%"></div>
+            </div>
+            <p class="progress-note">Since 2023 • Above state target</p>
+          </div>
+
+          <!-- CTA Card -->
+          <div class="bento-card cta-card" data-animate="fadeIn" style="--delay: 0.5s">
+            <h3>Explore the Data</h3>
+            <p>Interactive dashboard with district rankings, trends, and insights</p>
+            <button class="btn-primary-small" onclick="window.location.href='/dashboard.html'">
+              View Dashboard →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Timeline - Horizontal Scroll -->
+    <section id="timeline" class="timeline-section">
+      <div class="container">
+        <div class="section-header-center">
+          <div class="section-label">Our Journey</div>
+          <h2 class="section-title">Progress Over Time</h2>
+        </div>
+
+        <div class="timeline-scroll">
+          <div class="timeline-track">
+            <div class="timeline-item">
+              <div class="timeline-year">2023</div>
+              <div class="timeline-card">
+                <div class="timeline-icon">🚀</div>
+                <h3>Initiative Launch</h3>
+                <p>Partnership with MS Dept of Education to collect comprehensive literacy data</p>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-year">2024 Q1</div>
+              <div class="timeline-card">
+                <div class="timeline-icon">📊</div>
+                <h3>Statewide Data</h3>
+                <p>Successfully gathered performance data from all 150+ districts</p>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-year">2024 Q3</div>
+              <div class="timeline-card">
+                <div class="timeline-icon">💻</div>
+                <h3>Platform Launch</h3>
+                <p>Interactive web platform makes data accessible to all stakeholders</p>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-year">2025</div>
+              <div class="timeline-card">
+                <div class="timeline-icon">🎯</div>
+                <h3>Future Vision</h3>
+                <p>Real-time updates and predictive analytics for proactive intervention</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resources - Cards Grid -->
+    <section id="resources" class="resources-section">
+      <div class="container">
+        <div class="section-header-center">
+          <div class="section-label">Explore More</div>
+          <h2 class="section-title">Resources & Tools</h2>
+        </div>
+
+        <div class="resource-grid">
+          <a href="/books.html" class="resource-card purple">
+            <div class="resource-icon">📖</div>
+            <h3>Book Resources</h3>
+            <p>Curated reading lists by grade level, Mississippi authors, and teaching strategies</p>
+            <span class="resource-link">Explore Books →</span>
+          </a>
+
+          <a href="/map.html" class="resource-card blue">
+            <div class="resource-icon">🗺️</div>
+            <h3>Literacy Map</h3>
+            <p>Geographic insights showing literacy rates across all Mississippi counties</p>
+            <span class="resource-link">View Map →</span>
+          </a>
+
+          <a href="/dashboard.html" class="resource-card gold">
+            <div class="resource-icon">📊</div>
+            <h3>Data Dashboard</h3>
+            <p>Interactive charts, district rankings, and performance analytics</p>
+            <span class="resource-link">Open Dashboard →</span>
+          </a>
+
+          <a href="/mission.html" class="resource-card green">
+            <div class="resource-icon">🎯</div>
+            <h3>Full Mission</h3>
+            <p>Our complete values, goals, and commitment to educational equity</p>
+            <span class="resource-link">Read More →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Newsletter - Modern Design -->
+    <section class="newsletter-section">
+      <div class="newsletter-container">
+        <div class="newsletter-content">
+          <div class="section-label light">Stay Informed</div>
+          <h2 class="section-title light">Get Monthly Updates</h2>
+          <p class="newsletter-description">Literacy insights, new resources, and success stories delivered to your inbox</p>
+        </div>
+        
+        <div class="newsletter-form-wrapper">
+          <form class="newsletter-form" id="newsletter-form">
+            <input type="email" placeholder="your.email@example.com" class="newsletter-input" required>
+            <button type="submit" class="newsletter-submit">
+              Subscribe
+              <span class="btn-arrow">→</span>
+            </button>
+          </form>
+          <p class="newsletter-privacy">No spam. Unsubscribe anytime.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer - Minimal -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-main">
+          <div class="footer-brand">
+            <div class="brand-icon-footer">📚</div>
+            <div>
+              <div class="footer-title">Read Mississippi</div>
+              <div class="footer-tagline">Every Page Matters</div>
+            </div>
+          </div>
+          
+          <div class="footer-links">
+            <a href="#hero">Home</a>
+            <a href="#mission">Mission</a>
+            <a href="/books.html">Books</a>
+            <a href="/map.html">Map</a>
+            <a href="/dashboard.html">Dashboard</a>
+          </div>
+        </div>
+        
+        <div class="footer-bottom">
+          <p>&copy; 2025 Read Mississippi Initiative</p>
+          <div class="footer-legal">
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Contact</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <script src="{{ url_for('static', filename='modern.js') }}"></script>
 </body>
 </html>
