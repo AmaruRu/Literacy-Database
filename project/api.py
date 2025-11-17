@@ -252,31 +252,66 @@ def get_subgroup_performance():
         county = request.args.get('county')
         school_year = request.args.get('school_year', type=int)
         
-        # Build query for subgroup performance comparison
-        query = db.session.query(
-            DemographicGroups.subgroup_name,
-            DemographicGroups.subgroup_type,
-            func.avg(PerformanceRecords.english_proficiency).label('avg_english_proficiency'),
-            func.count(PerformanceRecords.record_id).label('record_count')
-        ).join(PerformanceRecords).filter(
-            PerformanceRecords.english_proficiency.isnot(None)
-        )
-        
-        if county:
+        # For statewide data (no county filter), use official state-level records
+        if not county:
+            # Get state-level school (Mississippi/Mississippi)
+            state_school = Schools.query.filter_by(school_number=0).first()
+            
+            if state_school:
+                # Use official state-level data - use MAX since there should be only one record per subgroup
+                query = db.session.query(
+                    DemographicGroups.subgroup_name,
+                    DemographicGroups.subgroup_type,
+                    func.max(PerformanceRecords.english_proficiency).label('avg_english_proficiency'),
+                    func.count(PerformanceRecords.record_id).label('record_count')
+                ).join(PerformanceRecords).filter(
+                    PerformanceRecords.school_id == state_school.school_id,
+                    PerformanceRecords.english_proficiency.isnot(None)
+                )
+            else:
+                # Fallback to aggregated data if no state record
+                query = db.session.query(
+                    DemographicGroups.subgroup_name,
+                    DemographicGroups.subgroup_type,
+                    func.avg(PerformanceRecords.english_proficiency).label('avg_english_proficiency'),
+                    func.count(PerformanceRecords.record_id).label('record_count')
+                ).join(PerformanceRecords).filter(
+                    PerformanceRecords.english_proficiency.isnot(None)
+                )
+        else:
+            # For county-specific data, use aggregated district/school data
+            query = db.session.query(
+                DemographicGroups.subgroup_name,
+                DemographicGroups.subgroup_type,
+                func.avg(PerformanceRecords.english_proficiency).label('avg_english_proficiency'),
+                func.count(PerformanceRecords.record_id).label('record_count')
+            ).join(PerformanceRecords).filter(
+                PerformanceRecords.english_proficiency.isnot(None)
+            )
+            
             query = query.join(Schools, PerformanceRecords.school_id == Schools.school_id)\
                         .join(Districts, Schools.district_id == Districts.district_id)\
                         .join(Locations, Districts.location_id == Locations.location_id)\
-                        .filter(Locations.county == county)
+                        .filter(Locations.county == county, Schools.school_number != 0)  # Exclude state-level data
         
         if school_year:
             query = query.join(AcademicYears, PerformanceRecords.year_id == AcademicYears.year_id)\
                         .filter(AcademicYears.school_year == school_year)
         
-        subgroup_performance = query.group_by(
-            DemographicGroups.group_id, DemographicGroups.subgroup_name, DemographicGroups.subgroup_type
-        ).order_by(
-            DemographicGroups.subgroup_type, func.avg(PerformanceRecords.english_proficiency).desc()
-        ).all()
+        if not county and state_school:
+            # For state-level data, group by subgroup only
+            subgroup_performance = query.group_by(
+                DemographicGroups.group_id, DemographicGroups.subgroup_name, DemographicGroups.subgroup_type
+            ).order_by(
+                DemographicGroups.subgroup_type, func.max(PerformanceRecords.english_proficiency).desc()
+            ).all()
+        else:
+            # For county or aggregated data, use avg function
+            subgroup_performance = query.group_by(
+                DemographicGroups.group_id, DemographicGroups.subgroup_name, DemographicGroups.subgroup_type
+            ).order_by(
+                DemographicGroups.subgroup_type, func.avg(PerformanceRecords.english_proficiency).desc()
+            ).all()
         
         result = []
         for subgroup_name, subgroup_type, avg_proficiency, record_count in subgroup_performance:
@@ -363,24 +398,57 @@ def get_performance_metrics():
                 'error': "'All' subgroup not found"
             }), 404
 
-        # Calculate state average
-        state_avg = db.session.query(
+        # Method 1: Official state-level record (preferred)
+        state_school = Schools.query.filter_by(school_number=0).first()
+        state_avg_official = None
+        if state_school:
+            state_record = PerformanceRecords.query.filter_by(
+                school_id=state_school.school_id,
+                group_id=all_subgroup.group_id
+            ).first()
+            state_avg_official = state_record.english_proficiency if state_record else None
+        
+        # Method 2: Average of individual records (All subgroup only)
+        state_avg_records = db.session.query(
             func.avg(PerformanceRecords.english_proficiency).label('state_avg')
         ).filter(
             PerformanceRecords.group_id == all_subgroup.group_id,
             PerformanceRecords.english_proficiency.isnot(None)
         ).scalar()
 
-        # Calculate districts above state average
+        # Method 3: Average of district averages (weighted by districts)
+        district_averages = db.session.query(
+            Districts.district_id,
+            func.avg(PerformanceRecords.english_proficiency).label('district_avg')
+        ).join(Schools, Districts.district_id == Schools.district_id)\
+         .join(PerformanceRecords, Schools.school_id == PerformanceRecords.school_id)\
+         .filter(
+            PerformanceRecords.group_id == all_subgroup.group_id,
+            PerformanceRecords.english_proficiency.isnot(None),
+            Schools.school_number != 0  # Exclude state-level school
+        ).group_by(Districts.district_id).all()
+
+        state_avg_districts = sum(avg for _, avg in district_averages) / len(district_averages) if district_averages else 0
+
+        # Method 4: All records regardless of subgroup
+        state_avg_all_records = db.session.query(
+            func.avg(PerformanceRecords.english_proficiency)
+        ).filter(
+            PerformanceRecords.english_proficiency.isnot(None)
+        ).scalar()
+
+        # Calculate districts above state average (use official state average)
+        comparison_avg = state_avg_official if state_avg_official else state_avg_records
         districts_above_avg = db.session.query(
             Districts.district_id
         ).join(Schools, Districts.district_id == Schools.district_id)\
          .join(PerformanceRecords, Schools.school_id == PerformanceRecords.school_id)\
          .filter(
             PerformanceRecords.group_id == all_subgroup.group_id,
-            PerformanceRecords.english_proficiency.isnot(None)
+            PerformanceRecords.english_proficiency.isnot(None),
+            Schools.school_number != 0  # Exclude state-level school
         ).group_by(Districts.district_id)\
-         .having(func.avg(PerformanceRecords.english_proficiency) > state_avg)\
+         .having(func.avg(PerformanceRecords.english_proficiency) > comparison_avg)\
          .count()
 
         # Total districts
@@ -406,7 +474,11 @@ def get_performance_metrics():
         return jsonify({
             'success': True,
             'data': {
-                'state_average': round(float(state_avg), 1) if state_avg else None,
+                'state_average': round(float(state_avg_official), 1) if state_avg_official else round(float(state_avg_records), 1) if state_avg_records else None,
+                'state_average_official': round(float(state_avg_official), 1) if state_avg_official else None,
+                'state_average_calculated': round(float(state_avg_records), 1) if state_avg_records else None,
+                'state_average_by_districts': round(float(state_avg_districts), 1) if state_avg_districts else None,
+                'state_average_all_records': round(float(state_avg_all_records), 1) if state_avg_all_records else None,
                 'districts_above_average': districts_above_avg,
                 'total_districts': total_districts,
                 'achievement_gap': round(achievement_gap, 1) if achievement_gap else None,
