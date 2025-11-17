@@ -29,7 +29,7 @@ def create_website():
     website.register_blueprint(api_bp)
 
     with website.app_context():
-       from .models import User, Locations, Districts, Schools, DemographicGroups, AcademicYears, PerformanceRecords, TeacherQuality, NAEPAssessments
+       from .models import User, Locations, Districts, Schools, DemographicGroups, AcademicYears, PerformanceRecords, TeacherQuality, NAEPAssessments, Books
        
        db.create_all()
        

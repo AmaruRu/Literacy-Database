@@ -91,7 +91,7 @@ def import_books():
                         books_skipped += 1
                         continue
                     
-                    # Create new book record
+                    # Create new book record  
                     book = Books(
                         title=title,
                         author=author,
