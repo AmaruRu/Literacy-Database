@@ -1038,6 +1038,143 @@ def get_map_districts():
             'error': str(e)
         }), 500
 
+@api_bp.route('/map/county/<county_name>', methods=['GET'])
+def get_county_districts_schools(county_name):
+    """Get detailed district and school information for a specific county"""
+    try:
+        # Same mapping as in /map/districts
+        DISTRICT_TO_COUNTY = {
+            'Aberdeen': 'Monroe', 'Alcorn': 'Alcorn', 'Amory': 'Monroe', 'Baldwyn': 'Lee',
+            'Bay St Louis': 'Hancock', 'Biloxi': 'Harrison', 'Booneville': 'Prentiss',
+            'Brookhaven': 'Lincoln', 'Canton': 'Madison', 'Clarksdale Municipal': 'Coahoma',
+            'Clarksdale Collegiate': 'Coahoma', 'Cleveland': 'Bolivar', 'Clinton': 'Hinds',
+            'Coffeeville': 'Yalobusha', 'Columbia': 'Marion', 'Columbus': 'Lowndes', 'Corinth': 'Alcorn',
+            'East Jasper': 'Jasper', 'East Tallahatchie': 'Tallahatchie',
+            'Enterprise': 'Clarke', 'Forest': 'Scott', 'Greenville': 'Washington',
+            'Greenwood': 'Leflore', 'Grenada': 'Grenada', 'Gulfport': 'Harrison',
+            'Hattiesburg': 'Forrest', 'Hazlehurst': 'Copiah', 'Hollandale': 'Washington',
+            'Holly Springs': 'Marshall', 'Holmes Consolidated': 'Holmes', 'Jackson Public': 'Hinds',
+            'Kosciusko': 'Attala', 'Laurel': 'Jones', 'Leland': 'Washington', 'Long Beach': 'Harrison',
+            'Louisville': 'Winston', 'Mccomb': 'Pike', 'Meridian': 'Lauderdale',
+            'Moss Point': 'Jackson', 'Natchez': 'Adams', 'Nettleton': 'Lee',
+            'New Albany': 'Union', 'Newton Municipal': 'Newton',
+            'Ocean Springs': 'Jackson', 'Okolona': 'Chickasaw', 'Oxford': 'Lafayette',
+            'Pascagoula': 'Jackson', 'Pass Christian': 'Harrison', 'Pearl Public': 'Rankin',
+            'Petal': 'Forrest', 'Philadelphia': 'Neshoba', 'Picayune': 'Pearl River',
+            'Pontotoc City': 'Pontotoc', 'Poplarville': 'Pearl River', 'Quitman School': 'Clarke',
+            'Richton': 'Perry', 'Senatobia': 'Tate', 'South Delta': 'Sharkey',
+            'Starkville': 'Oktibbeha', 'Tupelo': 'Lee',
+            'Union Public': 'Newton', 'Vicksburg': 'Warren', 'Water Valley': 'Yalobusha',
+            'West Point': 'Clay', 'Western Line': 'DeSoto', 'Winona': 'Montgomery',
+            'Yazoo City': 'Yazoo'
+        }
+        
+        DISTRICT_OVERRIDES = {
+            'North Panola': 'Panola', 'South Panola': 'Panola',
+            'North Pike': 'Pike', 'South Pike': 'Pike',
+            'North Tippah': 'Tippah', 'South Tippah': 'Tippah',
+            'North Bolivar': 'Bolivar', 'West Bolivar': 'Bolivar',
+            'West Jasper': 'Jasper', 'West Tallahatchie': 'Tallahatchie'
+        }
+
+        # Get 'All' subgroup
+        all_subgroup = DemographicGroups.query.filter_by(subgroup_name='All').first()
+        
+        if not all_subgroup:
+            return jsonify({
+                'success': False,
+                'error': "'All' subgroup not found"
+            }), 404
+
+        # Find districts for this county
+        county_districts = []
+        districts_data = db.session.query(
+            Districts.district_name,
+            Districts.district_id,
+            func.avg(PerformanceRecords.english_proficiency).label('avg_english_proficiency'),
+            func.avg(PerformanceRecords.english_growth).label('avg_english_growth'),
+            func.avg(PerformanceRecords.chronic_absenteeism_pct).label('avg_chronic_absenteeism'),
+            func.count(Schools.school_id.distinct()).label('school_count')
+        ).join(
+            Schools, Districts.district_id == Schools.district_id
+        ).join(
+            PerformanceRecords, Schools.school_id == PerformanceRecords.school_id
+        ).filter(
+            PerformanceRecords.group_id == all_subgroup.group_id
+        ).group_by(
+            Districts.district_id, Districts.district_name
+        ).all()
+
+        for district_name, district_id, eng_prof, eng_growth, absenteeism, school_count in districts_data:
+            # Determine if this district belongs to the requested county
+            district_county = None
+            
+            # Check override mapping first
+            for override_key, override_county in DISTRICT_OVERRIDES.items():
+                if override_key in district_name:
+                    district_county = override_county
+                    break
+
+            # Try county-based naming
+            if not district_county and 'County' in district_name:
+                parts = district_name.split('County')[0].strip()
+                county_parts = parts.split()
+                if len(county_parts) > 1 and county_parts[0] in ['North', 'South', 'East', 'West']:
+                    district_county = county_parts[-1]
+                else:
+                    district_county = parts
+
+            # Try partial matching in DISTRICT_TO_COUNTY
+            if not district_county:
+                for key, value in DISTRICT_TO_COUNTY.items():
+                    if key in district_name:
+                        district_county = value
+                        break
+
+            # Use location data as fallback
+            if not district_county:
+                district_obj = Districts.query.get(district_id)
+                if district_obj and district_obj.location:
+                    district_county = district_obj.location.county
+
+            if district_county and district_county.lower() == county_name.lower():
+                # Get schools for this district
+                schools = Schools.query.filter_by(district_id=district_id).all()
+                
+                district_info = {
+                    'district_id': district_id,
+                    'district_name': district_name,
+                    'school_count': school_count if school_count else 0,
+                    'schools': [
+                        {
+                            'school_id': school.school_id,
+                            'school_name': school.school_name,
+                            'school_type': school.school_type,
+                            'grade_span': school.grade_span,
+                            'county_name': district_county
+                        }
+                        for school in schools if school.school_number != 0  # Exclude state-level
+                    ],
+                    'english_proficiency': round(float(eng_prof), 1) if eng_prof else None,
+                    'english_growth': round(float(eng_growth), 1) if eng_growth else None,
+                    'chronic_absenteeism': round(float(absenteeism), 1) if absenteeism else None
+                }
+
+                county_districts.append(district_info)
+
+        return jsonify({
+            'success': True,
+            'county': county_name,
+            'districts': county_districts,
+            'district_count': len(county_districts)
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @api_bp.route('/health', methods=['GET'])
 def health_check():
     """API health check endpoint"""
