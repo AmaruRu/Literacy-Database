@@ -57,8 +57,8 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # 3. Configure database connection
-cp .env.example .env
-# Edit .env with your MySQL credentials
+# Create .env file with your MySQL credentials
+# (Note: .env.example file does not exist in this repository)
 
 # 4. Import data and run
 python import_data.py
@@ -263,16 +263,17 @@ Literacy-Database/
 │   │
 │   ├── 📁 templates/        # Jinja2 HTML templates
 │   │   ├── layout.html      # Homepage template
-│   │   └── dashboard.html   # Interactive dashboard
+│   │   ├── dashboard.html   # Interactive dashboard
+│   │   ├── books.html       # Books/resources page
+│   │   ├── map.html         # Geographic visualization
+│   │   └── mission.html     # Mission/about page
 │   │
 │   └── 📁 static/          # Frontend assets
 │       ├── 📁 css/
 │       │   └── styles.css   # Application styling
 │       └── dashboard.js     # Dashboard functionality
 │
-└── 📁 dev/                 # Development tools (optional)
-    ├── test_api.py         # API testing suite
-    └── test_models.py      # Model testing
+└── 📁 dev/                 # Development tools (empty)
 ```
 
 ## 🔧 Configuration
