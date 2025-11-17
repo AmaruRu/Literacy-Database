@@ -96,3 +96,171 @@ body {
     bottom: 0;
     width: 100%;
   }
+
+/* Performance Metrics Styles */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.metric-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  padding: 25px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-left: 4px solid #2c5aa0;
+}
+
+.metric-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.metric-card h4 {
+  margin: 0 0 15px 0;
+  color: #495057;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.metric-value {
+  font-size: 2.2em;
+  font-weight: bold;
+  color: #2c5aa0;
+  margin: 10px 0;
+  line-height: 1.2;
+}
+
+.metric-value.positive {
+  color: #28a745;
+}
+
+.metric-value.negative {
+  color: #dc3545;
+}
+
+.metric-card small {
+  color: #6c757d;
+  font-size: 0.85em;
+  line-height: 1.4;
+  display: block;
+  margin-top: 8px;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .metric-card {
+    padding: 20px;
+  }
+  
+  .metric-value {
+    font-size: 1.8em;
+  }
+  
+  nav ul {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  nav button {
+    padding: 6px 12px;
+    font-size: 0.9em;
+  }
+  
+  header h1 {
+    font-size: 2em;
+  }
+  
+  .dashboard-container {
+    padding: 15px;
+  }
+  
+  .chart-container {
+    height: 300px;
+  }
+}
+
+/* Enhanced table responsiveness */
+@media (max-width: 600px) {
+  .rankings-table {
+    font-size: 0.9em;
+  }
+  
+  .rankings-table th,
+  .rankings-table td {
+    padding: 8px;
+  }
+  
+  .filters {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* Loading animations */
+.loading {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Enhanced stat cards */
+.stat-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+/* Better section spacing */
+.dashboard-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2c5aa0, #4b2e83);
+}
+
+/* Improved filter styling */
+.filter-group select {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: #2c5aa0;
+  box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+}

@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # MySQL Database Service
+  mysql:
+    image: mysql:8.0
+    container_name: literacy_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword123
+      MYSQL_DATABASE: MS_DBMS
+      MYSQL_USER: literacy_user
+      MYSQL_PASSWORD: literacy_pass123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - literacy_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Flask Web Application Service
+  web:
+    build: .
+    container_name: literacy_web
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: literacy_user
+      MYSQL_PASSWORD: literacy_pass123
+      MYSQL_DB: MS_DBMS
+      FLASK_ENV: development
+      FLASK_APP: website.py
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    networks:
+      - literacy_network
+    command: ["python", "website.py"]
+
+  # Database Setup Service (runs once to import data)
+  db-setup:
+    build: .
+    container_name: literacy_db_setup
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: literacy_user
+      MYSQL_PASSWORD: literacy_pass123
+      MYSQL_DB: MS_DBMS
+    volumes:
+      - .:/app
+    networks:
+      - literacy_network
+    command: ["python", "import_data.py"]
+    profiles:
+      - setup
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  literacy_network:
+    driver: bridge

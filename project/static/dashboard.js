@@ -25,6 +25,7 @@ async function initializeDashboard() {
             loadDistrictRankings(),
             loadSubgroupPerformance(),
             loadPerformanceLevels(),
+            loadPerformanceMetrics(),
             loadDataSummary(),
             populateDistrictFilter()
         ]);
@@ -188,6 +189,54 @@ async function loadPerformanceLevels() {
     } catch (error) {
         console.error('Error loading performance levels:', error);
         throw error;
+    }
+}
+
+async function loadPerformanceMetrics() {
+    try {
+        const response = await fetch(`${API_BASE}/analytics/performance-metrics`);
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error);
+        }
+
+        const metrics = data.data;
+        
+        // Update performance metrics display
+        const metricsContainer = document.getElementById('performance-metrics');
+        if (metricsContainer) {
+            metricsContainer.innerHTML = `
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h4>State Achievement Gap</h4>
+                        <div class="metric-value">${metrics.achievement_gap?.toFixed(1) || 'N/A'}%</div>
+                        <small>Difference between highest and lowest performing subgroups</small>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Districts Above State Average</h4>
+                        <div class="metric-value">${metrics.districts_above_average || 'N/A'}</div>
+                        <small>Out of ${metrics.total_districts || 0} districts</small>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Proficiency Trend</h4>
+                        <div class="metric-value ${metrics.proficiency_trend >= 0 ? 'positive' : 'negative'}">
+                            ${metrics.proficiency_trend >= 0 ? '+' : ''}${metrics.proficiency_trend?.toFixed(1) || 'N/A'}%
+                        </div>
+                        <small>Year-over-year change</small>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Average Class Size Impact</h4>
+                        <div class="metric-value">${metrics.avg_class_size_impact?.toFixed(1) || 'N/A'}</div>
+                        <small>Students per teacher correlation with performance</small>
+                    </div>
+                </div>
+            `;
+        }
+
+    } catch (error) {
+        console.error('Error loading performance metrics:', error);
+        // Don't throw error to prevent dashboard failure
     }
 }
 
@@ -416,6 +465,7 @@ function showDashboardSections() {
         'rankings-section', 
         'subgroup-section',
         'performance-levels-section',
+        'metrics-section',
         'updates-section'
     ];
     
