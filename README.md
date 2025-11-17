@@ -57,8 +57,8 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # 3. Configure database connection
-cp .env.example .env
-# Edit .env with your MySQL credentials
+# Create .env file with your MySQL credentials
+# (Note: .env.example file does not exist in this repository)
 
 # 4. Import data and run
 python import_data.py
