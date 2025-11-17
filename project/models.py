@@ -3,188 +3,228 @@ from flask_login import UserMixin
 from datetime import datetime
 
 class User(UserMixin, db.Model):
-    __tablename__ = 'user'
-    
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
-    password_hash = db.Column(db.String(1000), nullable=False)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    password = db.Column(db.String(150), nullable=False)
+    first_name = db.Column(db.String(150), nullable=False)
+    is_verified = db.Column(db.Boolean, default=False)
+    verification_token = db.Column(db.String(100))
+    reset_token = db.Column(db.String(100))
+    reset_token_expires = db.Column(db.DateTime)
 
-    def __repr__(self):
-        return f'<User {self.username}>'
-
-
+class Locations(db.Model):
+    __tablename__ = 'locations'
+    location_id = db.Column(db.Integer, primary_key=True)
+    county = db.Column(db.String(100))
+    city = db.Column(db.String(100))
+    zip_code = db.Column(db.String(10))
+    
+    districts = db.relationship('Districts', backref='location', lazy=True)
+    
+    def to_dict(self):
+        return {
+            'location_id': self.location_id,
+            'county': self.county,
+            'city': self.city,
+            'zip_code': self.zip_code
+        }
+    
 class Districts(db.Model):
-    __tablename__ = 'Districts'
+    __tablename__ = 'districts'
+    district_id = db.Column(db.Integer, primary_key=True)
+    district_number = db.Column(db.Integer, nullable=False)
+    district_name = db.Column(db.String(255), nullable=False)
+    location_id = db.Column(db.Integer, db.ForeignKey('locations.location_id'), nullable=True)
     
-    District_ID = db.Column(db.Integer, primary_key=True)
-    District_Number = db.Column(db.Integer, unique=True, nullable=False)
-    District_Name = db.Column(db.String(255), nullable=False)
-    Created_At = db.Column(db.DateTime, default=datetime.utcnow)
-    Updated_At = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Relationships
     schools = db.relationship('Schools', backref='district', lazy=True, cascade='all, delete-orphan')
-    performance_data = db.relationship('PerformanceData', backref='district', lazy=True, cascade='all, delete-orphan')
     teacher_quality = db.relationship('TeacherQuality', backref='district', lazy=True, cascade='all, delete-orphan')
-    naep_assessments = db.relationship('NAEPAssessments', backref='district', lazy=True, cascade='all, delete-orphan')
     
-    def __repr__(self):
-        return f'<District {self.District_Name}>'
-
+    def to_dict(self):
+        return {
+            'district_id': self.district_id,
+            'district_number': self.district_number,
+            'district_name': self.district_name,
+            'location_id': self.location_id,
+            'county': self.location.county if self.location else None,
+            'city': self.location.city if self.location else None,
+            'zip_code': self.location.zip_code if self.location else None
+        }
 
 class Schools(db.Model):
-    __tablename__ = 'Schools'
+    __tablename__ = 'schools'
+    school_id = db.Column(db.Integer, primary_key=True)
+    school_number = db.Column(db.Integer, nullable=False)
+    school_name = db.Column(db.String(255), nullable=False)
+    district_id = db.Column(db.Integer, db.ForeignKey('districts.district_id'), nullable=False)
+    school_type = db.Column(db.String(50))  # State/District/School/Public/Private
+    grade_span = db.Column(db.String(50))   # e.g., K-5, 6-8, 9-12
     
-    School_ID = db.Column(db.Integer, primary_key=True)
-    School_Number = db.Column(db.Integer, nullable=False)
-    School_Name = db.Column(db.String(255), nullable=False)
-    District_ID = db.Column(db.Integer, db.ForeignKey('Districts.District_ID'), nullable=False)
-    Created_At = db.Column(db.DateTime, default=datetime.utcnow)
-    Updated_At = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    performance_records = db.relationship('PerformanceRecords', backref='school', lazy=True, cascade='all, delete-orphan')
     
-    # Relationships
-    performance_data = db.relationship('PerformanceData', backref='school', lazy=True, cascade='all, delete-orphan')
-    teacher_quality = db.relationship('TeacherQuality', backref='school', lazy=True, cascade='all, delete-orphan')
-    naep_assessments = db.relationship('NAEPAssessments', backref='school', lazy=True, cascade='all, delete-orphan')
-    
-    # Unique constraint
-    __table_args__ = (db.UniqueConstraint('School_Number', 'District_ID', name='unique_school_district'),)
-    
-    def __repr__(self):
-        return f'<School {self.School_Name}>'
+    def to_dict(self):
+        return {
+            'school_id': self.school_id,
+            'school_number': self.school_number,
+            'school_name': self.school_name,
+            'district_id': self.district_id,
+            'school_type': self.school_type,
+            'grade_span': self.grade_span,
+            'district_name': self.district.district_name if self.district else None
+        }
 
+class DemographicGroups(db.Model):
+    __tablename__ = 'demographic_groups'
+    group_id = db.Column(db.Integer, primary_key=True)
+    subgroup_name = db.Column(db.String(255), nullable=False, unique=True)
+    subgroup_type = db.Column(db.String(50), nullable=False)  # Race | Gender | Ethnicity | EconStatus | SPED | EL | All
+    
+    performance_records = db.relationship('PerformanceRecords', backref='demographic_group', lazy=True, cascade='all, delete-orphan')
+    
+    def to_dict(self):
+        return {
+            'group_id': self.group_id,
+            'subgroup_name': self.subgroup_name,
+            'subgroup_type': self.subgroup_type
+        }
 
-class Subgroups(db.Model):
-    __tablename__ = 'Subgroups'
+class AcademicYears(db.Model):
+    __tablename__ = 'academic_years'
+    year_id = db.Column(db.Integer, primary_key=True)
+    school_year = db.Column(db.Integer, nullable=False, unique=True)
     
-    Subgroup_ID = db.Column(db.Integer, primary_key=True)
-    Subgroup_Name = db.Column(db.String(100), nullable=False, unique=True)
-    Subgroup_Category = db.Column(db.Enum('All', 'Gender', 'Race_Ethnicity', 'Special_Population', name='subgroup_category'), nullable=False)
-    Created_At = db.Column(db.DateTime, default=datetime.utcnow)
+    performance_records = db.relationship('PerformanceRecords', backref='academic_year', lazy=True, cascade='all, delete-orphan')
+    teacher_quality = db.relationship('TeacherQuality', backref='academic_year', lazy=True, cascade='all, delete-orphan')
+    naep_assessments = db.relationship('NAEPAssessments', backref='academic_year', lazy=True, cascade='all, delete-orphan')
     
-    # Relationships
-    performance_data = db.relationship('PerformanceData', backref='subgroup', lazy=True, cascade='all, delete-orphan')
-    naep_assessments = db.relationship('NAEPAssessments', backref='subgroup', lazy=True, cascade='all, delete-orphan')
-    
-    def __repr__(self):
-        return f'<Subgroup {self.Subgroup_Name}>'
+    def to_dict(self):
+        return {
+            'year_id': self.year_id,
+            'school_year': self.school_year
+        }
 
-
-class PerformanceData(db.Model):
-    __tablename__ = 'Performance_Data'
+class PerformanceRecords(db.Model):
+    __tablename__ = 'performance_records'
+    record_id = db.Column(db.Integer, primary_key=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.school_id'), nullable=False)
+    group_id = db.Column(db.Integer, db.ForeignKey('demographic_groups.group_id'), nullable=False)
+    year_id = db.Column(db.Integer, db.ForeignKey('academic_years.year_id'), nullable=False)
+    grade_level = db.Column(db.String(50))
     
-    Performance_ID = db.Column(db.Integer, primary_key=True)
-    School_Year = db.Column(db.Integer, nullable=False)
-    District_ID = db.Column(db.Integer, db.ForeignKey('Districts.District_ID'), nullable=True)
-    School_ID = db.Column(db.Integer, db.ForeignKey('Schools.School_ID'), nullable=True)
-    Subgroup_ID = db.Column(db.Integer, db.ForeignKey('Subgroups.Subgroup_ID'), nullable=False)
-    Grade_Level = db.Column(db.String(20), nullable=True)
-    Assessment_Type = db.Column(db.Enum('State', 'District', 'School', name='assessment_type'), nullable=False)
+    # English/Reading Performance Metrics
+    english_proficiency = db.Column(db.Float)
+    english_growth = db.Column(db.Float)
+    english_growth_lowest_25 = db.Column(db.Float)
     
-    # English/Reading Performance
-    English_Proficiency = db.Column(db.Numeric(5, 2), nullable=True)
-    English_Growth = db.Column(db.Numeric(5, 2), nullable=True)
-    English_Growth_Lowest_25_Percent = db.Column(db.Numeric(5, 2), nullable=True)
+    # Performance Level Percentages and Counts
+    performance_level_1_pct = db.Column(db.Float)
+    performance_level_1_count = db.Column(db.Integer)
+    performance_level_2_pct = db.Column(db.Float)
+    performance_level_2_count = db.Column(db.Integer)
+    performance_level_3_pct = db.Column(db.Float)
+    performance_level_3_count = db.Column(db.Integer)
+    performance_level_4_pct = db.Column(db.Float)
+    performance_level_4_count = db.Column(db.Integer)
+    performance_level_5_pct = db.Column(db.Float)
+    performance_level_5_count = db.Column(db.Integer)
     
-    # Performance Level Percentages (1-5 scale)
-    Performance_Level_1_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    Performance_Level_1_Students = db.Column(db.Integer, nullable=True)
-    Performance_Level_2_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    Performance_Level_2_Students = db.Column(db.Integer, nullable=True)
-    Performance_Level_3_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    Performance_Level_3_Students = db.Column(db.Integer, nullable=True)
-    Performance_Level_4_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    Performance_Level_4_Students = db.Column(db.Integer, nullable=True)
-    Performance_Level_5_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    Performance_Level_5_Students = db.Column(db.Integer, nullable=True)
+    # Additional Metrics
+    chronic_absenteeism_pct = db.Column(db.Float)
     
-    # Attendance
-    Chronic_Absenteeism_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    
-    Created_At = db.Column(db.DateTime, default=datetime.utcnow)
-    Updated_At = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Unique constraint
-    __table_args__ = (db.UniqueConstraint('School_Year', 'District_ID', 'School_ID', 'Subgroup_ID', 'Grade_Level', name='unique_performance_record'),)
-    
-    def __repr__(self):
-        return f'<PerformanceData {self.School_Year} - {self.subgroup.Subgroup_Name if self.subgroup else "Unknown"}>'
-
+    def to_dict(self):
+        return {
+            'record_id': self.record_id,
+            'school_id': self.school_id,
+            'group_id': self.group_id,
+            'year_id': self.year_id,
+            'grade_level': self.grade_level,
+            'english_proficiency': self.english_proficiency,
+            'english_growth': self.english_growth,
+            'english_growth_lowest_25': self.english_growth_lowest_25,
+            'performance_level_1_pct': self.performance_level_1_pct,
+            'performance_level_1_count': self.performance_level_1_count,
+            'performance_level_2_pct': self.performance_level_2_pct,
+            'performance_level_2_count': self.performance_level_2_count,
+            'performance_level_3_pct': self.performance_level_3_pct,
+            'performance_level_3_count': self.performance_level_3_count,
+            'performance_level_4_pct': self.performance_level_4_pct,
+            'performance_level_4_count': self.performance_level_4_count,
+            'performance_level_5_pct': self.performance_level_5_pct,
+            'performance_level_5_count': self.performance_level_5_count,
+            'chronic_absenteeism_pct': self.chronic_absenteeism_pct,
+            'school_year': self.academic_year.school_year if self.academic_year else None,
+            'school_name': self.school.school_name if self.school else None,
+            'subgroup_name': self.demographic_group.subgroup_name if self.demographic_group else None,
+            'subgroup_type': self.demographic_group.subgroup_type if self.demographic_group else None
+        }
 
 class TeacherQuality(db.Model):
-    __tablename__ = 'Teacher_Quality'
+    __tablename__ = 'teacher_quality'
+    quality_id = db.Column(db.Integer, primary_key=True)
+    district_id = db.Column(db.Integer, db.ForeignKey('districts.district_id'), nullable=False)
+    year_id = db.Column(db.Integer, db.ForeignKey('academic_years.year_id'), nullable=False)
     
-    Teacher_Quality_ID = db.Column(db.Integer, primary_key=True)
-    School_Year = db.Column(db.Integer, nullable=False)
-    District_ID = db.Column(db.Integer, db.ForeignKey('Districts.District_ID'), nullable=True)
-    School_ID = db.Column(db.Integer, db.ForeignKey('Schools.School_ID'), nullable=True)
+    # Teacher Quality Metrics by Poverty Level
+    experienced_teachers_high_poverty = db.Column(db.Float)
+    experienced_teachers_low_poverty = db.Column(db.Float)
+    emergency_provisional_teachers_high_poverty = db.Column(db.Float)
+    emergency_provisional_teachers_low_poverty = db.Column(db.Float)
+    in_field_teachers_high_poverty = db.Column(db.Float)
+    in_field_teachers_low_poverty = db.Column(db.Float)
+    effective_teachers_high_poverty = db.Column(db.Float)
+    effective_teachers_low_poverty = db.Column(db.Float)
     
-    # Experienced Teachers
-    Experienced_Teachers_High_Poverty_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    Experienced_Teachers_Low_Poverty_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    
-    # Emergency Provisional Teachers
-    Emergency_Provisional_High_Poverty_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    Emergency_Provisional_Low_Poverty_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    
-    # In-Field Teachers
-    In_Field_Teachers_High_Poverty_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    In_Field_Teachers_Low_Poverty_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    
-    # Effective Teachers
-    Effective_Teachers_High_Poverty_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    Effective_Teachers_Low_Poverty_Percent = db.Column(db.Numeric(5, 2), nullable=True)
-    
-    Created_At = db.Column(db.DateTime, default=datetime.utcnow)
-    Updated_At = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Unique constraint
-    __table_args__ = (db.UniqueConstraint('School_Year', 'District_ID', 'School_ID', name='unique_teacher_record'),)
-    
-    def __repr__(self):
-        return f'<TeacherQuality {self.School_Year} - District {self.District_ID}>'
-
+    def to_dict(self):
+        return {
+            'quality_id': self.quality_id,
+            'district_id': self.district_id,
+            'year_id': self.year_id,
+            'experienced_teachers_high_poverty': self.experienced_teachers_high_poverty,
+            'experienced_teachers_low_poverty': self.experienced_teachers_low_poverty,
+            'emergency_provisional_teachers_high_poverty': self.emergency_provisional_teachers_high_poverty,
+            'emergency_provisional_teachers_low_poverty': self.emergency_provisional_teachers_low_poverty,
+            'in_field_teachers_high_poverty': self.in_field_teachers_high_poverty,
+            'in_field_teachers_low_poverty': self.in_field_teachers_low_poverty,
+            'effective_teachers_high_poverty': self.effective_teachers_high_poverty,
+            'effective_teachers_low_poverty': self.effective_teachers_low_poverty,
+            'school_year': self.academic_year.school_year if self.academic_year else None,
+            'district_name': self.district.district_name if self.district else None
+        }
 
 class NAEPAssessments(db.Model):
-    __tablename__ = 'NAEP_Assessments'
+    __tablename__ = 'naep_assessments'
+    assessment_id = db.Column(db.Integer, primary_key=True)
+    year_id = db.Column(db.Integer, db.ForeignKey('academic_years.year_id'), nullable=False)
+    scope = db.Column(db.String(20), nullable=False)  # State/District/School
+    district_id = db.Column(db.Integer, db.ForeignKey('districts.district_id'), nullable=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.school_id'), nullable=True)
     
-    NAEP_ID = db.Column(db.Integer, primary_key=True)
-    School_Year = db.Column(db.Integer, nullable=False)
-    District_ID = db.Column(db.Integer, db.ForeignKey('Districts.District_ID'), nullable=True)
-    School_ID = db.Column(db.Integer, db.ForeignKey('Schools.School_ID'), nullable=True)
-    Subgroup_ID = db.Column(db.Integer, db.ForeignKey('Subgroups.Subgroup_ID'), nullable=False)
+    # NAEP 4th Grade Reading Levels
+    grade_4_reading_below_basic = db.Column(db.Float)
+    grade_4_reading_basic = db.Column(db.Float)
+    grade_4_reading_proficient = db.Column(db.Float)
+    grade_4_reading_advanced = db.Column(db.Float)
     
-    # 4th Grade Math
-    Grade_4_Math_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_4_Math_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_4_Math_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_4_Math_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
+    # NAEP 8th Grade Reading Levels
+    grade_8_reading_below_basic = db.Column(db.Float)
+    grade_8_reading_basic = db.Column(db.Float)
+    grade_8_reading_proficient = db.Column(db.Float)
+    grade_8_reading_advanced = db.Column(db.Float)
     
-    # 4th Grade Reading
-    Grade_4_Reading_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_4_Reading_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_4_Reading_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_4_Reading_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
-    
-    # 8th Grade Math
-    Grade_8_Math_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_8_Math_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_8_Math_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_8_Math_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
-    
-    # 8th Grade Reading
-    Grade_8_Reading_Below_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_8_Reading_Basic = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_8_Reading_Proficient = db.Column(db.Numeric(5, 2), nullable=True)
-    Grade_8_Reading_Advanced = db.Column(db.Numeric(5, 2), nullable=True)
-    
-    Created_At = db.Column(db.DateTime, default=datetime.utcnow)
-    Updated_At = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Unique constraint
-    __table_args__ = (db.UniqueConstraint('School_Year', 'District_ID', 'School_ID', 'Subgroup_ID', name='unique_naep_record'),)
-    
-    def __repr__(self):
-        return f'<NAEPAssessment {self.School_Year} - {self.subgroup.Subgroup_Name if self.subgroup else "Unknown"}>'
+    def to_dict(self):
+        return {
+            'assessment_id': self.assessment_id,
+            'year_id': self.year_id,
+            'scope': self.scope,
+            'district_id': self.district_id,
+            'school_id': self.school_id,
+            'grade_4_reading_below_basic': self.grade_4_reading_below_basic,
+            'grade_4_reading_basic': self.grade_4_reading_basic,
+            'grade_4_reading_proficient': self.grade_4_reading_proficient,
+            'grade_4_reading_advanced': self.grade_4_reading_advanced,
+            'grade_8_reading_below_basic': self.grade_8_reading_below_basic,
+            'grade_8_reading_basic': self.grade_8_reading_basic,
+            'grade_8_reading_proficient': self.grade_8_reading_proficient,
+            'grade_8_reading_advanced': self.grade_8_reading_advanced,
+            'school_year': self.academic_year.school_year if self.academic_year else None
+        }
