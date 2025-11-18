@@ -1,3 +1,6 @@
+#This file handles the routing for the website pages.
+#It uses Flask to define routes and render HTML templates for each page.
+
 from flask import render_template
 from project import create_website
 import webbrowser

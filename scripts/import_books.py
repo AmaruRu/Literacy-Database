@@ -1,3 +1,5 @@
+# This script imports book recommendations from an Excel file (book_reco/Book_Recs.xls) into the database.
+
 #!/usr/bin/env python3
 """
 Import book recommendations from Excel file to database

@@ -1,4 +1,7 @@
-FROM python:3.9-slim
+# This Dockerfile sets up a Flask web application environment
+# It installs necessary system and Python dependencies,
+
+FROM python:3.9-slim 
 
 # Set working directory
 WORKDIR /app

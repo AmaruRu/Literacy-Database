@@ -1,3 +1,5 @@
+#This script generates an SQL script to update book cover URLs in the database
+
 #!/usr/bin/env python3
 """
 Generate SQL script to update book covers from Excel file

@@ -1,3 +1,7 @@
+# Docker Compose configuration for Literacy Database application
+# This file defines services for the MySQL database, Flask web application,
+# and a one-time database setup service to import initial data.
+
 services:
   # MySQL Database Service
   mysql:
