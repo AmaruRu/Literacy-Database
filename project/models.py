@@ -1,3 +1,6 @@
+#This file contains the database models for the Literacy Database application.
+# It defines the structure of the database tables and their relationships using SQLAlchemy ORM.
+# Each class represents a table in the database with its respective columns and data types.
 from . import db
 from flask_login import UserMixin
 from datetime import datetime
