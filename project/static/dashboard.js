@@ -182,12 +182,27 @@ async function loadSubgroupPerformance(districtId = null) {
 
 async function loadPerformanceLevels() {
     try {
-        const response = await fetch(`${API_BASE}/performance?subgroup_id=1&limit=1000`); // All students
+        // Get the 'All' subgroup ID first
+        const subgroupResponse = await fetch(`${API_BASE}/demographic-groups`);
+        const subgroupData = await subgroupResponse.json();
+        
+        if (!subgroupData.success) {
+            throw new Error('Failed to load demographic groups');
+        }
+        
+        const allSubgroup = subgroupData.data.find(group => group.subgroup_name === 'All');
+        if (!allSubgroup) {
+            throw new Error('All subgroup not found');
+        }
+
+        const response = await fetch(`${API_BASE}/performance?subgroup_id=${allSubgroup.group_id}&limit=1000`);
         const data = await response.json();
 
         if (!data.success) {
-            throw new Error(data.error);
+            throw new Error(data.error || 'Failed to load performance data');
         }
+
+        console.log('Performance data loaded:', data.data.length, 'records');
 
         // Aggregate performance levels
         const levelTotals = {
@@ -205,13 +220,16 @@ async function loadPerformanceLevels() {
             if (levels) {
                 for (let i = 1; i <= 5; i++) {
                     const level = levels[`level_${i}`];
-                    if (level && level.students) {
-                        levelTotals[`Level ${i}`] += level.students;
-                        totalStudents += level.students;
+                    if (level && level.count) {
+                        levelTotals[`Level ${i}`] += level.count;
+                        totalStudents += level.count;
                     }
                 }
             }
         });
+
+        console.log('Level totals:', levelTotals);
+        console.log('Total students:', totalStudents);
 
         // Convert to percentages
         const levelPercentages = {};
@@ -219,6 +237,8 @@ async function loadPerformanceLevels() {
             levelPercentages[level] = totalStudents > 0 ? 
                 ((levelTotals[level] / totalStudents) * 100).toFixed(1) : 0;
         });
+
+        console.log('Level percentages:', levelPercentages);
 
         createPerformanceLevelsChart(levelPercentages);
 
