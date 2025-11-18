@@ -3,6 +3,10 @@
 Update existing books with cover URLs from Excel file
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import pandas as pd
 from project import create_website, db
 from project.models import Books
@@ -14,7 +18,7 @@ def update_book_covers():
     
     try:
         # Load Excel data
-        df = pd.read_excel('book_reco/Book_Recs.xls')
+        df = pd.read_excel('./data/book_reco/Book_Recs.xls')
         print(f"Loaded {len(df)} books from Excel file")
         
         # Create Flask app context

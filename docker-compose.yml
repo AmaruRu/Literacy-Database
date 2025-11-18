@@ -13,7 +13,7 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - ./scripts/sql/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
     networks:
       - literacy_network
     healthcheck:
@@ -61,7 +61,7 @@ services:
       - .:/app
     networks:
       - literacy_network
-    command: ["python", "import_data.py"]
+    command: ["sh", "-c", "python scripts/import_data.py && python scripts/import_books.py"]
     profiles:
       - setup
 
