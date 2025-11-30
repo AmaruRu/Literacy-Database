@@ -9,8 +9,13 @@ let performanceLevelsChart = null;
 let schoolPerformanceChart = null;
 let currentFilters = {
     county: '',
+    city: '',
+    zipCode: '',
     district: '',
     schoolType: '',
+    gradeLevel: '',
+    raceEthnicity: '',
+    subgroupType: '',
     performanceRange: '',
     gradeSpan: ''
 };
@@ -177,12 +182,27 @@ async function loadSubgroupPerformance(districtId = null) {
 
 async function loadPerformanceLevels() {
     try {
-        const response = await fetch(`${API_BASE}/performance?subgroup_id=1&limit=1000`); // All students
+        // Get the 'All' subgroup ID first
+        const subgroupResponse = await fetch(`${API_BASE}/demographic-groups`);
+        const subgroupData = await subgroupResponse.json();
+        
+        if (!subgroupData.success) {
+            throw new Error('Failed to load demographic groups');
+        }
+        
+        const allSubgroup = subgroupData.data.find(group => group.subgroup_name === 'All');
+        if (!allSubgroup) {
+            throw new Error('All subgroup not found');
+        }
+
+        const response = await fetch(`${API_BASE}/performance?subgroup_id=${allSubgroup.group_id}&limit=1000`);
         const data = await response.json();
 
         if (!data.success) {
-            throw new Error(data.error);
+            throw new Error(data.error || 'Failed to load performance data');
         }
+
+        console.log('Performance data loaded:', data.data.length, 'records');
 
         // Aggregate performance levels
         const levelTotals = {
@@ -200,13 +220,16 @@ async function loadPerformanceLevels() {
             if (levels) {
                 for (let i = 1; i <= 5; i++) {
                     const level = levels[`level_${i}`];
-                    if (level && level.students) {
-                        levelTotals[`Level ${i}`] += level.students;
-                        totalStudents += level.students;
+                    if (level && level.count) {
+                        levelTotals[`Level ${i}`] += level.count;
+                        totalStudents += level.count;
                     }
                 }
             }
         });
+
+        console.log('Level totals:', levelTotals);
+        console.log('Total students:', totalStudents);
 
         // Convert to percentages
         const levelPercentages = {};
@@ -214,6 +237,8 @@ async function loadPerformanceLevels() {
             levelPercentages[level] = totalStudents > 0 ? 
                 ((levelTotals[level] / totalStudents) * 100).toFixed(1) : 0;
         });
+
+        console.log('Level percentages:', levelPercentages);
 
         createPerformanceLevelsChart(levelPercentages);
 
@@ -314,44 +339,101 @@ async function loadDataSummary() {
 
 async function populateFilters() {
     try {
-        // Load all filter data in parallel
-        const [countiesResponse, districtsResponse] = await Promise.all([
-            fetch(`${API_BASE}/analytics/counties`),
-            fetch(`${API_BASE}/districts`)
+        // Load all filter options in parallel
+        const [
+            countiesResponse,
+            citiesResponse,
+            zipCodesResponse,
+            districtsResponse,
+            schoolTypesResponse,
+            gradeLevelsResponse,
+            demographicGroupsResponse
+        ] = await Promise.all([
+            fetch(`${API_BASE}/filters/counties`),
+            fetch(`${API_BASE}/filters/cities`),
+            fetch(`${API_BASE}/filters/zip-codes`),
+            fetch(`${API_BASE}/districts`),
+            fetch(`${API_BASE}/filters/school-types`),
+            fetch(`${API_BASE}/filters/grade-levels`),
+            fetch(`${API_BASE}/filters/demographic-groups`)
         ]);
 
-        const countiesData = await countiesResponse.json();
-        const districtsData = await districtsResponse.json();
-
-        if (!countiesData.success || !districtsData.success) {
-            throw new Error('Failed to load filter data');
-        }
+        // Parse responses
+        const counties = await countiesResponse.json();
+        const cities = await citiesResponse.json();
+        const zipCodes = await zipCodesResponse.json();
+        const districts = await districtsResponse.json();
+        const schoolTypes = await schoolTypesResponse.json();
+        const gradeLevels = await gradeLevelsResponse.json();
+        const demographicGroups = await demographicGroupsResponse.json();
 
         // Populate county filter
         const countySelect = document.getElementById('county-filter');
-        countiesData.data.forEach(county => {
+        counties.data.forEach(county => {
             const option = document.createElement('option');
             option.value = county;
             option.textContent = county;
             countySelect.appendChild(option);
         });
 
+        // Populate city filter
+        const citySelect = document.getElementById('city-filter');
+        cities.data.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city;
+            citySelect.appendChild(option);
+        });
+
+        // Populate zip code filter
+        const zipSelect = document.getElementById('zip-filter');
+        zipCodes.data.forEach(zip => {
+            const option = document.createElement('option');
+            option.value = zip;
+            option.textContent = zip;
+            zipSelect.appendChild(option);
+        });
+
         // Populate district filter
         const districtSelect = document.getElementById('district-filter');
-        const sortedDistricts = districtsData.data.sort((a, b) => 
-            a.district_name.localeCompare(b.district_name)
-        );
-
-        sortedDistricts.forEach(district => {
+        districts.data.forEach(district => {
             const option = document.createElement('option');
             option.value = district.district_id;
             option.textContent = district.district_name;
             districtSelect.appendChild(option);
         });
 
-        // Add event listeners for all filters
-        setupFilterListeners();
+        // Populate school type filter
+        const schoolTypeSelect = document.getElementById('school-type-filter');
+        schoolTypes.data.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            schoolTypeSelect.appendChild(option);
+        });
 
+        // Populate grade level filter
+        const gradeLevelSelect = document.getElementById('grade-level-filter');
+        gradeLevels.data.forEach(grade => {
+            const option = document.createElement('option');
+            option.value = grade;
+            option.textContent = grade;
+            gradeLevelSelect.appendChild(option);
+        });
+
+        // Populate race/ethnicity filter
+        const raceEthnicitySelect = document.getElementById('race-ethnicity-filter');
+        demographicGroups.data.forEach(group => {
+            const option = document.createElement('option');
+            option.value = group.group_id;
+            option.textContent = `${group.subgroup_name} (${group.subgroup_type})`;
+            raceEthnicitySelect.appendChild(option);
+        });
+
+        // Add filter event listeners
+        setupFilterListeners();
+        
+        console.log('All filters populated successfully');
     } catch (error) {
         console.error('Error populating filters:', error);
         throw error;
@@ -359,29 +441,55 @@ async function populateFilters() {
 }
 
 function setupFilterListeners() {
-    // County filter
-    document.getElementById('county-filter').addEventListener('change', function() {
-        currentFilters.county = this.value;
-        refreshData();
+    // County filter change - update cities and zip codes
+    document.getElementById('county-filter').addEventListener('change', async function() {
+        const selectedCounty = this.value;
+        currentFilters.county = selectedCounty;
+        
+        // Update cities based on selected county
+        await updateCitiesFilter(selectedCounty);
+        await updateZipCodesFilter(selectedCounty, '');
+        
+        // Reload data with new filter
+        await refreshData();
     });
 
-    // District filter
-    document.getElementById('district-filter').addEventListener('change', function() {
-        currentFilters.district = this.value;
-        const districtId = this.value || null;
-        loadSubgroupPerformance(districtId);
+    // City filter change - update zip codes
+    document.getElementById('city-filter').addEventListener('change', async function() {
+        const selectedCity = this.value;
+        currentFilters.city = selectedCity;
+        
+        // Update zip codes based on selected city
+        await updateZipCodesFilter(currentFilters.county, selectedCity);
+        
+        // Reload data with new filter
+        await refreshData();
     });
 
-    // School type filter
-    document.getElementById('school-type-filter').addEventListener('change', function() {
-        currentFilters.schoolType = this.value;
-        refreshData();
-    });
+    // All other filters
+    ['zip-filter', 'district-filter', 'school-type-filter', 'grade-level-filter', 
+     'race-ethnicity-filter', 'subgroup-type-filter', 'performance-filter'].forEach(filterId => {
+        const element = document.getElementById(filterId);
+        if (element) {
+            element.addEventListener('change', async function() {
+                // Update current filters
+                if (filterId === 'zip-filter') currentFilters.zipCode = this.value;
+                else if (filterId === 'district-filter') currentFilters.district = this.value;
+                else if (filterId === 'school-type-filter') currentFilters.schoolType = this.value;
+                else if (filterId === 'grade-level-filter') currentFilters.gradeLevel = this.value;
+                else if (filterId === 'race-ethnicity-filter') currentFilters.raceEthnicity = this.value;
+                else if (filterId === 'subgroup-type-filter') currentFilters.subgroupType = this.value;
+                else if (filterId === 'performance-filter') currentFilters.performanceRange = this.value;
 
-    // Performance range filter
-    document.getElementById('performance-filter').addEventListener('change', function() {
-        currentFilters.performanceRange = this.value;
-        refreshData();
+                // Handle subgroup type filter - update race/ethnicity options
+                if (filterId === 'subgroup-type-filter') {
+                    await updateRaceEthnicityFilter(this.value);
+                }
+                
+                // Reload data with new filters
+                await refreshData();
+            });
+        }
     });
 
     // Clear filters button
@@ -409,23 +517,94 @@ function setupFilterListeners() {
     }
 }
 
-function clearAllFilters() {
-    // Reset filter values
-    document.getElementById('county-filter').value = '';
-    document.getElementById('district-filter').value = '';
-    document.getElementById('school-type-filter').value = '';
-    document.getElementById('performance-filter').value = '';
-    
-    // Reset current filters object
-    currentFilters = {
-        county: '',
-        district: '',
-        schoolType: '',
-        performanceRange: '',
-        gradeSpan: ''
-    };
+async function updateCitiesFilter(selectedCounty) {
+    try {
+        const url = selectedCounty ? 
+            `${API_BASE}/filters/cities?county=${encodeURIComponent(selectedCounty)}` : 
+            `${API_BASE}/filters/cities`;
+        
+        const response = await fetch(url);
+        const cities = await response.json();
+        
+        const citySelect = document.getElementById('city-filter');
+        citySelect.innerHTML = '<option value="">All Cities</option>';
+        
+        cities.data.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city;
+            citySelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error updating cities filter:', error);
+    }
+}
 
-    // Refresh data
+async function updateZipCodesFilter(selectedCounty, selectedCity) {
+    try {
+        let url = `${API_BASE}/filters/zip-codes`;
+        const params = new URLSearchParams();
+        
+        if (selectedCounty) params.append('county', selectedCounty);
+        if (selectedCity) params.append('city', selectedCity);
+        
+        if (params.toString()) url += `?${params.toString()}`;
+        
+        const response = await fetch(url);
+        const zipCodes = await response.json();
+        
+        const zipSelect = document.getElementById('zip-filter');
+        zipSelect.innerHTML = '<option value="">All Zip Codes</option>';
+        
+        zipCodes.data.forEach(zip => {
+            const option = document.createElement('option');
+            option.value = zip;
+            option.textContent = zip;
+            zipSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error updating zip codes filter:', error);
+    }
+}
+
+async function updateRaceEthnicityFilter(selectedSubgroupType) {
+    try {
+        const url = selectedSubgroupType ? 
+            `${API_BASE}/filters/demographic-groups?subgroup_type=${encodeURIComponent(selectedSubgroupType)}` : 
+            `${API_BASE}/filters/demographic-groups`;
+        
+        const response = await fetch(url);
+        const groups = await response.json();
+        
+        const raceEthnicitySelect = document.getElementById('race-ethnicity-filter');
+        raceEthnicitySelect.innerHTML = '<option value="">All Groups</option>';
+        
+        groups.data.forEach(group => {
+            const option = document.createElement('option');
+            option.value = group.group_id;
+            option.textContent = `${group.subgroup_name}`;
+            raceEthnicitySelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error updating race/ethnicity filter:', error);
+    }
+}
+
+function clearAllFilters() {
+    // Reset all filter values
+    Object.keys(currentFilters).forEach(key => {
+        currentFilters[key] = '';
+    });
+    
+    // Reset all select elements
+    ['county-filter', 'city-filter', 'zip-filter', 'district-filter', 
+     'school-type-filter', 'grade-level-filter', 'race-ethnicity-filter', 
+     'subgroup-type-filter', 'performance-filter'].forEach(filterId => {
+        const select = document.getElementById(filterId);
+        if (select) select.selectedIndex = 0;
+    });
+    
+    // Reload data without filters
     refreshData();
 }
 

@@ -5,37 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Read Mississippi: Every Page Matters</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-providers@latest/leaflet-providers.js"></script>
 </head>
 <body>
   <header>
-    <h1>📖 Map</h1>
-    <p class="tagline">Every Page Turned is a Step Toward Change</p>
+    <h1>Literacy Map</h1>
+    <p class="tagline">Visualize Mississippi's Literacy</p>
     <nav>
       <ul>
-        <li><a href="/mission.html"><button>Mission</button></a></li>
-        <li><a href="/map.html"><button>Literacy Map</button></a></li>
-        <li><a href="/books.html"><button>Books</button></a></li>
-        <li><a href="/dashboard.html"><button>Dashboard</button></a></li>
+        <li><a href="/"><button>Home</button></a></li>
+        <li><a href="mission.html"><button>Mission</button></a></li>
+        <li><a href="books.html"><button>Books</button></a></li>
+        <li><a href="dashboard.html"><button>Dashboard</button></a></li>
       </ul>
     </nav>
   </header>
 
-  <section id="hero">
-    <h2>Reading is an Adventure 🗺️</h2>
-    <p>Join us as we explore Mississippi's literacy journey—one story, one student, one county at a time.</p>
-    <button onclick="scrollToSection('mission')">Start Exploring</button>
-  </section>
-
-  <section id="mission">
-    <h2>📚 Our Mission</h2>
-    <p>We aim to raise awareness about literacy rates across Mississippi and empower communities to take action through the power of reading. Data meets storytelling on this journey.</p>
-  </section>
+  <section id="map"></section>
 
   <footer>
-    <p>&copy; 2025 Read Mississippi | Built with 📚 by Team Read</p>
+    <p>&copy; 2025 Read Mississippi</p>
   </footer>
 
-  <link rel="stylesheet" href="styles.css" />
-  <script src="script.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+  <script src="{{ url_for('static', filename='lit_map.js') }}"></script>
 </body>
 </html>

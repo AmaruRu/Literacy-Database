@@ -109,10 +109,11 @@
     }
     
     .filters {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 15px;
       margin-bottom: 20px;
-      flex-wrap: wrap;
+      align-items: end;
     }
     
     .filter-group {
@@ -272,23 +273,58 @@
       
       <div class="filters">
         <div class="filter-group">
-          <label for="county-filter">Filter by County:</label>
+          <label for="county-filter">County:</label>
           <select id="county-filter">
             <option value="">All Counties</option>
           </select>
         </div>
         <div class="filter-group">
-          <label for="district-filter">Filter by District:</label>
+          <label for="city-filter">City:</label>
+          <select id="city-filter">
+            <option value="">All Cities</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="zip-filter">Zip Code:</label>
+          <select id="zip-filter">
+            <option value="">All Zip Codes</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="district-filter">District:</label>
           <select id="district-filter">
             <option value="">All Districts</option>
           </select>
         </div>
         <div class="filter-group">
-          <label for="school-type-filter">Filter by School Type:</label>
+          <label for="school-type-filter">School Type:</label>
           <select id="school-type-filter">
             <option value="">All School Types</option>
-            <option value="School">Individual Schools</option>
-            <option value="District">District Aggregates</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="grade-level-filter">Grade Level:</label>
+          <select id="grade-level-filter">
+            <option value="">All Grade Levels</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="race-ethnicity-filter">Race/Ethnicity:</label>
+          <select id="race-ethnicity-filter">
+            <option value="">All Groups</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="subgroup-type-filter">Student Group Type:</label>
+          <select id="subgroup-type-filter">
+            <option value="">All Types</option>
+            <option value="Race">Race</option>
+            <option value="Ethnicity">Ethnicity</option>
+            <option value="EconStatus">Economic Status</option>
+            <option value="SPED">Special Education</option>
+            <option value="EL">English Learners</option>
+            <option value="Gender">Gender</option>
+            <option value="All">All Students</option>
           </select>
         </div>
         <div class="filter-group">
