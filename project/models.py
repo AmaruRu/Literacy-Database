@@ -228,3 +228,28 @@ class NAEPAssessments(db.Model):
             'grade_8_reading_advanced': self.grade_8_reading_advanced,
             'school_year': self.academic_year.school_year if self.academic_year else None
         }
+
+class Books(db.Model):
+    __tablename__ = 'books'
+    book_id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(500), nullable=False)
+    author = db.Column(db.String(255), nullable=False)
+    grade_level = db.Column(db.String(50), nullable=False)
+    lexile = db.Column(db.String(20), nullable=True)
+    literature_type = db.Column(db.Enum('Fiction', 'Nonfiction', name='literature_type'), nullable=False)
+    cover_url = db.Column(db.String(1000), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'book_id': self.book_id,
+            'title': self.title,
+            'author': self.author,
+            'grade_level': self.grade_level,
+            'lexile': self.lexile,
+            'literature_type': self.literature_type,
+            'cover_url': self.cover_url,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }

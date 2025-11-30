@@ -3,8 +3,8 @@ API endpoints for Mississippi Literacy Database
 """
 
 from flask import Blueprint, jsonify, request
-from sqlalchemy import func
-from .models import Locations, Districts, Schools, DemographicGroups, AcademicYears, PerformanceRecords, TeacherQuality, NAEPAssessments
+from sqlalchemy import func, or_
+from .models import Locations, Districts, Schools, DemographicGroups, AcademicYears, PerformanceRecords, TeacherQuality, NAEPAssessments, Books
 from . import db
 
 # Create API blueprint
@@ -684,6 +684,360 @@ def get_counties():
             'error': str(e)
         }), 500
 
+@api_bp.route('/books', methods=['GET'])
+def get_books():
+    """Get book recommendations with filtering options"""
+    try:
+        # Query parameters
+        grade_level = request.args.get('grade_level', type=str)
+        literature_type = request.args.get('literature_type', type=str)
+        lexile_min = request.args.get('lexile_min', type=str)
+        lexile_max = request.args.get('lexile_max', type=str)
+        author = request.args.get('author', type=str)
+        search = request.args.get('search', type=str)
+        limit = request.args.get('limit', default=50, type=int)
+        offset = request.args.get('offset', default=0, type=int)
+
+        # Build query
+        query = Books.query
+
+        # Apply filters
+        if grade_level:
+            query = query.filter(Books.grade_level == grade_level)
+
+        if literature_type:
+            query = query.filter(Books.literature_type == literature_type)
+
+        if author:
+            query = query.filter(Books.author.ilike(f'%{author}%'))
+
+        if search:
+            query = query.filter(or_(
+                Books.title.ilike(f'%{search}%'),
+                Books.author.ilike(f'%{search}%')
+            ))
+
+        # Lexile filtering (handle numeric and special values like "BR")
+        if lexile_min or lexile_max:
+            if lexile_min:
+                try:
+                    min_val = int(lexile_min)
+                    query = query.filter(
+                        or_(
+                            Books.lexile.cast(db.Integer) >= min_val,
+                            Books.lexile == 'BR'
+                        )
+                    )
+                except ValueError:
+                    pass
+
+            if lexile_max:
+                try:
+                    max_val = int(lexile_max)
+                    query = query.filter(
+                        or_(
+                            Books.lexile.cast(db.Integer) <= max_val,
+                            Books.lexile == 'BR'
+                        )
+                    )
+                except ValueError:
+                    pass
+
+        # Get total count before pagination
+        total_count = query.count()
+
+        # Apply pagination
+        books = query.order_by(Books.grade_level, Books.title).limit(limit).offset(offset).all()
+
+        result = []
+        for book in books:
+            result.append({
+                'book_id': book.book_id,
+                'title': book.title,
+                'author': book.author,
+                'grade_level': book.grade_level,
+                'lexile': book.lexile,
+                'literature_type': book.literature_type,
+                'cover_url': book.cover_url
+            })
+
+        return jsonify({
+            'success': True,
+            'data': result,
+            'count': len(result),
+            'total': total_count,
+            'filters_applied': {
+                'grade_level': grade_level,
+                'literature_type': literature_type,
+                'lexile_min': lexile_min,
+                'lexile_max': lexile_max,
+                'author': author,
+                'search': search,
+                'limit': limit,
+                'offset': offset
+            }
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/books/<int:book_id>', methods=['GET'])
+def get_book_detail(book_id):
+    """Get detailed information for a specific book"""
+    try:
+        book = Books.query.get_or_404(book_id)
+
+        result = {
+            'book_id': book.book_id,
+            'title': book.title,
+            'author': book.author,
+            'grade_level': book.grade_level,
+            'lexile': book.lexile,
+            'literature_type': book.literature_type,
+            'cover_url': book.cover_url,
+            'created_at': book.created_at.isoformat() if book.created_at else None
+        }
+
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/books/grade-levels', methods=['GET'])
+def get_grade_levels():
+    """Get all available grade levels for books"""
+    try:
+        grade_levels = db.session.query(
+            Books.grade_level,
+            func.count(Books.book_id).label('book_count')
+        ).group_by(Books.grade_level).order_by(
+            func.field(Books.grade_level,
+                      'Kindergarten', '1st Grade', '2nd Grade', '3rd Grade',
+                      '4th Grade', '5th Grade', '6th Grade', '7th Grade',
+                      '8th Grade', '9th Grade', '10th Grade', '11th Grade', '12th Grade')
+        ).all()
+
+        result = []
+        for grade_level, count in grade_levels:
+            result.append({
+                'grade_level': grade_level,
+                'book_count': count
+            })
+
+        return jsonify({
+            'success': True,
+            'data': result,
+            'count': len(result)
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/books/authors', methods=['GET'])
+def get_authors():
+    """Get all authors with book counts"""
+    try:
+        limit = request.args.get('limit', default=50, type=int)
+
+        authors = db.session.query(
+            Books.author,
+            func.count(Books.book_id).label('book_count')
+        ).group_by(Books.author).order_by(
+            func.count(Books.book_id).desc(),
+            Books.author
+        ).limit(limit).all()
+
+        result = []
+        for author, count in authors:
+            result.append({
+                'author': author,
+                'book_count': count
+            })
+
+        return jsonify({
+            'success': True,
+            'data': result,
+            'count': len(result)
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@api_bp.route('/map/districts', methods=['GET'])
+def get_map_districts():
+    """Get district literacy data for map visualization (grouped by county)"""
+    try:
+        # Mapping of district names to counties using your existing data
+        DISTRICT_TO_COUNTY = {
+            'Aberdeen': 'Monroe', 'Alcorn': 'Alcorn', 'Amory': 'Monroe', 'Baldwyn': 'Lee',
+            'Bay St Louis': 'Hancock', 'Biloxi': 'Harrison', 'Booneville': 'Prentiss',
+            'Brookhaven': 'Lincoln', 'Canton': 'Madison', 'Clarksdale Municipal': 'Coahoma',
+            'Clarksdale Collegiate': 'Coahoma', 'Cleveland': 'Bolivar', 'Clinton': 'Hinds',
+            'Coffeeville': 'Yalobusha', 'Columbia': 'Marion', 'Columbus': 'Lowndes', 'Corinth': 'Alcorn',
+            'East Jasper': 'Jasper', 'East Tallahatchie': 'Tallahatchie',
+            'Enterprise': 'Clarke', 'Forest': 'Scott', 'Greenville': 'Washington',
+            'Greenwood': 'Leflore', 'Grenada': 'Grenada', 'Gulfport': 'Harrison',
+            'Hattiesburg': 'Forrest', 'Hazlehurst': 'Copiah', 'Hollandale': 'Washington',
+            'Holly Springs': 'Marshall', 'Holmes Consolidated': 'Holmes', 'Jackson Public': 'Hinds',
+            'Kosciusko': 'Attala', 'Laurel': 'Jones', 'Leland': 'Washington', 'Long Beach': 'Harrison',
+            'Louisville': 'Winston', 'Mccomb': 'Pike', 'Meridian': 'Lauderdale',
+            'Moss Point': 'Jackson', 'Natchez': 'Adams', 'Nettleton': 'Lee',
+            'New Albany': 'Union', 'Newton Municipal': 'Newton',
+            'Ocean Springs': 'Jackson', 'Okolona': 'Chickasaw', 'Oxford': 'Lafayette',
+            'Pascagoula': 'Jackson', 'Pass Christian': 'Harrison', 'Pearl Public': 'Rankin',
+            'Petal': 'Forrest', 'Philadelphia': 'Neshoba', 'Picayune': 'Pearl River',
+            'Pontotoc City': 'Pontotoc', 'Poplarville': 'Pearl River', 'Quitman School': 'Clarke',
+            'Richton': 'Perry', 'Senatobia': 'Tate', 'South Delta': 'Sharkey',
+            'Starkville': 'Oktibbeha', 'Tupelo': 'Lee',
+            'Union Public': 'Newton', 'Vicksburg': 'Warren', 'Water Valley': 'Yalobusha',
+            'West Point': 'Clay', 'Western Line': 'DeSoto', 'Winona': 'Montgomery',
+            'Yazoo City': 'Yazoo'
+        }
+
+        # Special handling for district names with directional prefixes
+        DISTRICT_OVERRIDES = {
+            'North Panola': 'Panola', 'South Panola': 'Panola',
+            'North Pike': 'Pike', 'South Pike': 'Pike',
+            'North Tippah': 'Tippah', 'South Tippah': 'Tippah',
+            'North Bolivar': 'Bolivar', 'West Bolivar': 'Bolivar',
+            'West Jasper': 'Jasper', 'West Tallahatchie': 'Tallahatchie'
+        }
+
+        # Get 'All' subgroup for overall performance
+        all_subgroup = DemographicGroups.query.filter_by(subgroup_name='All').first()
+
+        if not all_subgroup:
+            return jsonify({
+                'success': False,
+                'error': "'All' subgroup not found"
+            }), 404
+
+        # Get most recent year
+        most_recent_year = db.session.query(
+            func.max(AcademicYears.school_year)
+        ).join(PerformanceRecords).scalar()
+
+        # Get district data with literacy metrics
+        districts_data = db.session.query(
+            Districts.district_name,
+            func.avg(PerformanceRecords.english_proficiency).label('avg_english_proficiency'),
+            func.avg(PerformanceRecords.english_growth).label('avg_english_growth'),
+            func.avg(PerformanceRecords.chronic_absenteeism_pct).label('avg_chronic_absenteeism'),
+            func.count(Schools.school_id.distinct()).label('school_count')
+        ).join(
+            Schools, Districts.district_id == Schools.district_id
+        ).join(
+            PerformanceRecords, Schools.school_id == PerformanceRecords.school_id
+        ).join(
+            AcademicYears, PerformanceRecords.year_id == AcademicYears.year_id
+        ).filter(
+            PerformanceRecords.group_id == all_subgroup.group_id,
+            AcademicYears.school_year == most_recent_year
+        ).group_by(
+            Districts.district_id, Districts.district_name
+        ).all()
+
+        # Extract county name from district name and aggregate data by county
+        county_data = {}
+        for district_name, eng_prof, eng_growth, absenteeism, school_count in districts_data:
+            county_name = None
+
+            # First check override mapping (exact match for special cases)
+            for override_key, override_county in DISTRICT_OVERRIDES.items():
+                if override_key in district_name:
+                    county_name = override_county
+                    break
+
+            # If not in overrides, try county-based naming
+            if not county_name and 'County' in district_name:
+                parts = district_name.split('County')[0].strip()
+                county_parts = parts.split()
+                if len(county_parts) > 1 and county_parts[0] in ['North', 'South', 'East', 'West']:
+                    county_name = county_parts[-1]
+                else:
+                    county_name = parts
+
+            # If still not found, try partial matching in DISTRICT_TO_COUNTY
+            if not county_name:
+                for key, value in DISTRICT_TO_COUNTY.items():
+                    if key in district_name:
+                        county_name = value
+                        break
+
+            # Use location data if still no match
+            if not county_name:
+                district_obj = Districts.query.filter_by(district_name=district_name).first()
+                if district_obj and district_obj.location:
+                    county_name = district_obj.location.county
+
+            if county_name:
+                if county_name not in county_data:
+                    county_data[county_name] = {
+                        'districts': [],
+                        'total_proficiency': 0,
+                        'total_growth': 0,
+                        'total_absenteeism': 0,
+                        'count_proficiency': 0,
+                        'count_growth': 0,
+                        'count_absenteeism': 0,
+                        'total_schools': 0
+                    }
+
+                county_data[county_name]['districts'].append(district_name)
+                county_data[county_name]['total_schools'] += school_count if school_count else 0
+
+                if eng_prof:
+                    county_data[county_name]['total_proficiency'] += float(eng_prof)
+                    county_data[county_name]['count_proficiency'] += 1
+                if eng_growth:
+                    county_data[county_name]['total_growth'] += float(eng_growth)
+                    county_data[county_name]['count_growth'] += 1
+                if absenteeism:
+                    county_data[county_name]['total_absenteeism'] += float(absenteeism)
+                    county_data[county_name]['count_absenteeism'] += 1
+
+        # Calculate averages and format result
+        result = {}
+        for county_name, data in county_data.items():
+            result[county_name] = {
+                'county_name': county_name,
+                'districts': data['districts'],
+                'district_count': len(data['districts']),
+                'english_proficiency': round(data['total_proficiency'] / data['count_proficiency'], 1) if data['count_proficiency'] > 0 else None,
+                'english_growth': round(data['total_growth'] / data['count_growth'], 1) if data['count_growth'] > 0 else None,
+                'chronic_absenteeism': round(data['total_absenteeism'] / data['count_absenteeism'], 1) if data['count_absenteeism'] > 0 else None,
+                'school_count': data['total_schools'],
+                'school_year': most_recent_year
+            }
+
+        return jsonify({
+            'success': True,
+            'data': result,
+            'count': len(result),
+            'school_year': most_recent_year
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @api_bp.route('/health', methods=['GET'])
 def health_check():
     """API health check endpoint"""
@@ -692,6 +1046,7 @@ def health_check():
         district_count = Districts.query.count()
         school_count = Schools.query.count()
         performance_records_count = PerformanceRecords.query.count()
+        book_count = Books.query.count()
         
         return jsonify({
             'success': True,
@@ -700,7 +1055,8 @@ def health_check():
             'counts': {
                 'districts': district_count,
                 'schools': school_count,
-                'performance_records': performance_records_count
+                'performance_records': performance_records_count,
+                'books': book_count
             }
         })
     

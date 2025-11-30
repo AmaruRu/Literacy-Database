@@ -4,7 +4,7 @@ import webbrowser
 
 website = create_website()
 
-webbrowser.open('http://127.0.0.1:5001/')
+webbrowser.open('http://127.0.0.1:5000/')
 
 @website.route('/', methods = ['GET'])
 def home():
