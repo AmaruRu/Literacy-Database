@@ -1,3 +1,6 @@
+#This file defines the API endpoints for the Mississippi Literacy Database using Flask.
+#the endpoints provide access to district, school, demographic, performance, and book data.
+
 """
 API endpoints for Mississippi Literacy Database
 """
@@ -10,7 +13,7 @@ from . import db
 # Create API blueprint
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
-@api_bp.route('/districts', methods=['GET'])
+@api_bp.route('/districts', methods=['GET'])  # Get all districts
 def get_districts():
     """Get all districts with basic information"""
     try:
@@ -76,7 +79,7 @@ def get_schools():
             'success': False,
             'error': str(e)
         }), 500
-
+#the endpoint returns a list of demographic groups along with the count of associated performance records.
 @api_bp.route('/demographic-groups', methods=['GET'])
 def get_demographic_groups():
     """Get all demographic groups"""

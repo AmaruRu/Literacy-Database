@@ -1,7 +1,13 @@
+# This script imports book recommendations from an Excel file (book_reco/Book_Recs.xls) into the database.
+
 #!/usr/bin/env python3
 """
 Import book recommendations from Excel file to database
 """
+
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pandas as pd
 import numpy as np
@@ -42,7 +48,7 @@ def import_books():
     
     try:
         # Load Excel data
-        df = pd.read_excel('book_reco/Book_Recs.xls')
+        df = pd.read_excel('./data/book_reco/Book_Recs.xls')
         print(f"Loaded {len(df)} books from Excel file")
         
         # Create Flask app context

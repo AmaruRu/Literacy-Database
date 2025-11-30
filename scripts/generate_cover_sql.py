@@ -1,3 +1,5 @@
+#This script generates an SQL script to update book cover URLs in the database
+
 #!/usr/bin/env python3
 """
 Generate SQL script to update book covers from Excel file
@@ -13,7 +15,7 @@ def generate_cover_update_sql():
     
     try:
         # Load Excel data
-        df = pd.read_excel('book_reco/Book_Recs.xls')
+        df = pd.read_excel('./data/book_reco/Book_Recs.xls')
         print(f"Loaded {len(df)} books from Excel file")
         
         # Create SQL file

@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import pandas as pd
 import numpy as np
 from project import create_website, db
@@ -62,7 +66,7 @@ def import_data():
     print("Starting data import...")
     
     # Load CSV data
-    df = pd.read_csv('Mississippi_Literacy_Dataset.csv')
+    df = pd.read_csv('./data/Mississippi_Literacy_Dataset.csv')
     print(f"Loaded {len(df)} records from CSV")
     
     # Create Flask app context

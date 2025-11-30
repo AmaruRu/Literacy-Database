@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Literacy Map - Read Mississippi</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  
+  <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <nav class="side-nav" id="side-nav">
+    <div class="nav-brand">
+      <div class="brand-icon">📚</div>
+      <div class="brand-text">
+        <span class="brand-name">Read MS</span>
+        <span class="brand-tagline">Every Page Matters</span>
+      </div>
+    </div>
+    
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-text">Home</span>
+      </a>
+      <a href="mission.html" class="nav-link">
+        <span class="nav-icon">🎯</span>
+        <span class="nav-text">Mission</span>
+      </a>
+      <a href="map.html" class="nav-link active">
+        <span class="nav-icon">🗺️</span>
+        <span class="nav-text">Map</span>
+      </a>
+      <a href="books.html" class="nav-link">
+        <span class="nav-icon">📚</span>
+        <span class="nav-text">Books</span>
+      </a>
+      <a href="dashboard.html" class="nav-link">
+        <span class="nav-icon">📈</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+    </div>
+    
+    <div class="nav-footer">
+      <div class="social-icons">
+        <a href="#" class="social-icon">f</a>
+        <a href="#" class="social-icon">𝕏</a>
+        <a href="#" class="social-icon">in</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    
+    <header class="top-bar">
+      <div class="top-bar-content">
+        <div class="logo-compact">
+          <span class="logo-icon">📚</span>
+          <span class="logo-text">Read Mississippi</span>
+        </div>
+        <a href="dashboard.html" class="btn-compact">Dashboard</a>
+      </div>
+    </header>
+
+    <section class="page-hero">
+      <div class="page-hero-content">
+        <div class="hero-badge">Geographic Insights</div>
+        <h1 class="page-title">Mississippi<br><span class="gradient-text">Literacy</span> Map</h1>
+        <p class="page-subtitle">Explore literacy rates across all 82 counties</p>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="container">
+        
+        <div class="content-intro">
+          <h2>Coming Soon: Interactive Map</h2>
+          <p class="large-text">We're developing an interactive map to visualize literacy data geographically. Check back soon!</p>
+        </div>
+
+        <div class="map-placeholder-v3">
+          <div class="map-coming-soon">
+            <div class="map-icon">🗺️</div>
+            <h3>Interactive Map in Development</h3>
+            <p>Soon you'll be able to explore county-by-county literacy data with interactive visualizations</p>
+          </div>
+        </div>
+
+        <div class="cta-section-page">
+          <h2>Explore Data Now</h2>
+          <p>Visit our dashboard for comprehensive literacy analytics</p>
+          <button class="btn-primary" onclick="window.location.href='dashboard.html'">View Dashboard →</button>
+        </div>
+
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-main">
+          <div class="footer-brand">
+            <div class="brand-icon-footer">📚</div>
+            <div>
+              <div class="footer-title">Read Mississippi</div>
+              <div class="footer-tagline">Every Page Matters</div>
+            </div>
+          </div>
+          
+          <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="mission.html">Mission</a>
+            <a href="books.html">Books</a>
+            <a href="map.html">Map</a>
+            <a href="dashboard.html">Dashboard</a>
+          </div>
+        </div>
+        
+        <div class="footer-bottom">
+          <p>&copy; 2025 Read Mississippi Initiative</p>
+          <div class="footer-legal">
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Contact</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <script src="script.js"></script>
+  <script src="modern.js"></script>
+</body>
+</html>
